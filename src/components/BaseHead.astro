@@ -19,7 +19,9 @@ const { title, description, image = FallbackImage } = Astro.props;
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0e1413" />
-<link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+<!-- ?v= 是为了让浏览器放弃缓存里的旧图标；以后再换图标时把数字加一 -->
+<link rel="icon" type="image/svg+xml" href={url('favicon.svg?v=3')} />
+<link rel="apple-touch-icon" href={url('apple-touch-icon.png?v=3')} />
 <link rel="sitemap" href={url('sitemap-index.xml')} />
 <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href={url('rss.xml')} />
 <meta name="generator" content={Astro.generator} />
