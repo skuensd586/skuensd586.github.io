@@ -1,0 +1,192 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from '../components/FormattedDate.astro';
+import Base from './Base.astro';
+import { url } from '../consts';
+
+type Props = Partial<CollectionEntry<'blog'>['data']> &
+	Pick<CollectionEntry<'blog'>['data'], 'title' | 'description' | 'pubDate'>;
+
+const { title, description, pubDate, updatedDate, heroImage, tags = [] } = Astro.props;
+---
+
+<Base title={`${title} · 小海湾`} description={description} image={heroImage}>
+	<main>
+		<article>
+			<header class="head container">
+				<p class="date reveal">
+					<FormattedDate date={pubDate} />
+					{updatedDate && <span>· 更新于 <FormattedDate date={updatedDate} /></span>}
+				</p>
+				<h1 class="reveal" style="--d:.08s">{title}</h1>
+				<p class="desc reveal" style="--d:.16s">{description}</p>
+			</header>
+
+			{
+				heroImage && (
+					<div class="hero container reveal">
+						<Image width={1200} height={600} src={heroImage} alt="" />
+					</div>
+				)
+			}
+
+			<div class="prose container"><slot /></div>
+
+			<footer class="foot container">
+				{
+					tags.length > 0 && (
+						<ul class="tags">
+							{tags.map((t) => (
+								<li>{t}</li>
+							))}
+						</ul>
+					)
+				}
+				<a href={url('blog/')}>‹ 返回文章列表</a>
+			</footer>
+		</article>
+	</main>
+</Base>
+
+<style>
+	.head {
+		max-width: 760px;
+		padding-block: clamp(48px, 9vw, 112px) clamp(24px, 4vw, 48px);
+		text-align: center;
+	}
+	.date {
+		margin: 0 0 1em;
+		font-size: 0.9rem;
+		color: var(--text-2);
+	}
+	h1 {
+		font-size: clamp(2.2rem, 6vw, 3.8rem);
+		line-height: 1.1;
+		letter-spacing: -0.04em;
+	}
+	.desc {
+		margin: 1em 0 0;
+		font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+		color: var(--text-2);
+	}
+	.hero {
+		max-width: 1000px;
+		margin-bottom: clamp(24px, 5vw, 56px);
+	}
+	.hero :global(img) {
+		display: block;
+		width: 100%;
+		height: auto;
+		border-radius: 28px;
+		box-shadow: var(--shadow);
+	}
+
+	/* ---------- 正文排版 ---------- */
+	.prose {
+		max-width: 700px;
+		font-size: 1.12rem;
+		line-height: 1.85;
+	}
+	.prose :global(h2) {
+		margin: 2.2em 0 0.6em;
+		font-size: 1.9rem;
+	}
+	.prose :global(h3) {
+		margin: 1.8em 0 0.5em;
+		font-size: 1.4rem;
+	}
+	.prose :global(p),
+	.prose :global(ul),
+	.prose :global(ol) {
+		margin: 0 0 1.4em;
+	}
+	.prose :global(li) {
+		margin: 0.3em 0;
+	}
+	.prose :global(img) {
+		display: block;
+		margin: 2em auto;
+		border-radius: 20px;
+		box-shadow: var(--shadow);
+	}
+	.prose :global(blockquote) {
+		margin: 1.8em 0;
+		padding: 0.2em 0 0.2em 1.2em;
+		border-left: 3px solid var(--sea-2);
+		color: var(--text-2);
+		font-size: 1.15em;
+	}
+	.prose :global(hr) {
+		margin: 3em 0;
+		border: 0;
+		border-top: 1px solid var(--line);
+	}
+	.prose :global(code) {
+		padding: 0.15em 0.4em;
+		border-radius: 6px;
+		background: var(--bg-alt);
+		font-family: var(--font-mono);
+		font-size: 0.88em;
+	}
+	.prose :global(pre) {
+		margin: 1.8em 0;
+		padding: 1.2em 1.4em;
+		overflow-x: auto;
+		border-radius: 18px;
+		font-size: 0.9rem;
+		line-height: 1.65;
+	}
+	.prose :global(pre code) {
+		padding: 0;
+		background: none;
+	}
+	.prose :global(table) {
+		width: 100%;
+		margin: 1.8em 0;
+		border-collapse: collapse;
+		font-size: 0.95em;
+	}
+	.prose :global(th),
+	.prose :global(td) {
+		padding: 0.6em 0.8em;
+		border-bottom: 1px solid var(--line);
+		text-align: left;
+	}
+
+	/* Shiki 双主题：随系统明暗切换 */
+	.prose :global(.astro-code),
+	.prose :global(.astro-code span) {
+		color: var(--shiki-light);
+		background-color: var(--shiki-light-bg);
+	}
+	@media (prefers-color-scheme: dark) {
+		.prose :global(.astro-code),
+		.prose :global(.astro-code span) {
+			color: var(--shiki-dark);
+			background-color: var(--shiki-dark-bg);
+		}
+	}
+
+	.foot {
+		max-width: 700px;
+		padding-block: 32px clamp(64px, 10vw, 120px);
+		border-top: 1px solid var(--line);
+		margin-top: 3em;
+	}
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		list-style: none;
+		margin: 0 0 1.4em;
+		padding: 0;
+	}
+	.tags li {
+		padding: 2px 12px;
+		border-radius: 999px;
+		background: var(--bg-alt);
+		color: var(--text-2);
+		font-size: 0.85rem;
+	}
+</style>

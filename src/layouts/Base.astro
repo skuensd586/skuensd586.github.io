@@ -1,0 +1,109 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+	title: string;
+	description: string;
+	image?: ImageMetadata;
+}
+
+const { title, description, image } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={title} description={description} image={image} />
+	</head>
+	<body>
+		<Header />
+		<slot />
+		<Footer />
+
+		<script>
+			const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			// 1. 导航栏：滚动后出现细分隔线
+			const nav = document.querySelector<HTMLElement>('[data-nav]');
+			const onNav = () => nav?.classList.toggle('scrolled', window.scrollY > 8);
+
+			// 2. 滚动渐显
+			const reveals = document.querySelectorAll<HTMLElement>('.reveal');
+			if (reduce || !('IntersectionObserver' in window)) {
+				reveals.forEach((el) => el.classList.add('in'));
+			} else {
+				const io = new IntersectionObserver(
+					(entries) => {
+						for (const e of entries) {
+							if (e.isIntersecting) {
+								e.target.classList.add('in');
+								io.unobserve(e.target);
+							}
+						}
+					},
+					{ threshold: 0.15, rootMargin: '0px 0px -8% 0px' },
+				);
+				reveals.forEach((el) => io.observe(el));
+			}
+
+			// 3. 视差：首屏中的海浪与小狗以不同速度上移
+			const parallax = [...document.querySelectorAll<HTMLElement>('[data-parallax]')];
+
+			// 4. 文字逐词点亮：随滚动进度依次变亮
+			const statements = [...document.querySelectorAll<HTMLElement>('[data-words]')].map((el) => {
+				const words = el.textContent!.trim().split(/(\s+)/);
+				el.textContent = '';
+				const spans: HTMLElement[] = [];
+				for (const w of words) {
+					if (/^\s+$/.test(w)) {
+						el.append(w);
+					} else {
+						const s = document.createElement('span');
+						s.className = 'w';
+						s.textContent = w;
+						el.append(s);
+						spans.push(s);
+					}
+				}
+				el.classList.add('words-ready');
+				return { el, spans };
+			});
+
+			let ticking = false;
+			const update = () => {
+				ticking = false;
+				const y = window.scrollY;
+				const vh = window.innerHeight;
+				onNav();
+
+				if (!reduce && y < vh * 1.5) {
+					for (const el of parallax) {
+						const speed = Number(el.dataset.parallax) || 0;
+						el.style.setProperty('--py', `${(-y * speed).toFixed(1)}px`);
+					}
+				}
+
+				for (const { el, spans } of statements) {
+					const r = el.getBoundingClientRect();
+					// 元素顶部从视口 85% 处滑到 35% 处时，进度 0 → 1
+					const p = Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (vh * 0.5 + r.height * 0.3)));
+					const lit = reduce ? spans.length : Math.round(p * spans.length);
+					spans.forEach((s, i) => s.classList.toggle('on', i < lit));
+				}
+			};
+			const request = () => {
+				if (!ticking) {
+					ticking = true;
+					requestAnimationFrame(update);
+				}
+			};
+
+			window.addEventListener('scroll', request, { passive: true });
+			window.addEventListener('resize', request);
+			update();
+		</script>
+	</body>
+</html>

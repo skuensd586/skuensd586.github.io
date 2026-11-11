@@ -1,0 +1,130 @@
+---
+// 原创的 SVG 小狗：会眨眼、摇耳朵、吐舌头。外层的上下浮动由使用方控制。
+---
+
+<svg class="puppy" viewBox="0 0 240 220" role="img" aria-label="一只在海边微笑的小狗">
+	<!-- 身体 -->
+	<ellipse cx="120" cy="188" rx="66" ry="44" fill="#f0a95f"></ellipse>
+	<ellipse cx="120" cy="196" rx="38" ry="34" fill="#fff4e0"></ellipse>
+
+	<!-- 前爪 -->
+	<g>
+		<ellipse cx="88" cy="214" rx="20" ry="13" fill="#fff4e0" stroke="#d98f45" stroke-width="2"></ellipse>
+		<ellipse cx="152" cy="214" rx="20" ry="13" fill="#fff4e0" stroke="#d98f45" stroke-width="2"></ellipse>
+		<path d="M80 214v-5M88 215v-6M96 214v-5M144 214v-5M152 215v-6M160 214v-5" stroke="#d98f45" stroke-width="2" stroke-linecap="round"></path>
+	</g>
+
+	<!-- 耳朵（左右各一，轻轻摇动） -->
+	<g class="ear ear-l">
+		<path d="M62 62C34 58 22 92 30 124C36 142 58 138 66 118C72 100 74 74 62 62Z" fill="#c97c36"></path>
+		<path d="M58 78C46 80 42 100 46 114" fill="none" stroke="#b46a28" stroke-width="3" stroke-linecap="round" opacity=".5"></path>
+	</g>
+	<g class="ear ear-r">
+		<path d="M178 62C206 58 218 92 210 124C204 142 182 138 174 118C168 100 166 74 178 62Z" fill="#c97c36"></path>
+		<path d="M182 78C194 80 198 100 194 114" fill="none" stroke="#b46a28" stroke-width="3" stroke-linecap="round" opacity=".5"></path>
+	</g>
+
+	<!-- 脸 -->
+	<ellipse cx="120" cy="104" rx="74" ry="66" fill="#f0a95f"></ellipse>
+	<!-- 额头白色斑纹 -->
+	<path d="M120 44C108 62 106 84 112 100H128C134 84 132 62 120 44Z" fill="#fff4e0"></path>
+	<!-- 脸颊腮红 -->
+	<circle cx="62" cy="124" r="11" fill="#ff9aa8" opacity=".45"></circle>
+	<circle cx="178" cy="124" r="11" fill="#ff9aa8" opacity=".45"></circle>
+	<!-- 吻部 -->
+	<ellipse cx="120" cy="132" rx="42" ry="32" fill="#fff4e0"></ellipse>
+
+	<!-- 眼睛（眨眼动画作用于整个 g） -->
+	<g class="eyes">
+		<ellipse cx="86" cy="104" rx="8" ry="9.5" fill="#2a1d14"></ellipse>
+		<ellipse cx="154" cy="104" rx="8" ry="9.5" fill="#2a1d14"></ellipse>
+		<circle cx="89" cy="100" r="3" fill="#fff"></circle>
+		<circle cx="157" cy="100" r="3" fill="#fff"></circle>
+	</g>
+	<!-- 眉点 -->
+	<circle cx="86" cy="86" r="3.5" fill="#fff4e0"></circle>
+	<circle cx="154" cy="86" r="3.5" fill="#fff4e0"></circle>
+
+	<!-- 鼻子与嘴 -->
+	<path d="M108 122C108 116 132 116 132 122C132 130 124 136 120 136C116 136 108 130 108 122Z" fill="#2a1d14"></path>
+	<ellipse cx="116" cy="121" rx="4" ry="1.8" fill="#fff" opacity=".45"></ellipse>
+	<path d="M120 136V144M120 144C114 152 102 150 100 142M120 144C126 152 138 150 140 142" fill="none" stroke="#2a1d14" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+	<!-- 舌头 -->
+	<g class="tongue">
+		<path d="M110 148C110 164 130 164 130 148Z" fill="#ff7b93"></path>
+		<path d="M120 148V158" stroke="#e45a76" stroke-width="2" stroke-linecap="round"></path>
+	</g>
+</svg>
+
+<style>
+	.puppy {
+		display: block;
+		width: 100%;
+		height: auto;
+		overflow: visible;
+		filter: drop-shadow(0 10px 18px rgba(0, 40, 90, 0.18));
+	}
+
+	/* 眨眼：每 5 秒一次 */
+	.eyes {
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: blink 5s infinite;
+	}
+	@keyframes blink {
+		0%,
+		92%,
+		100% {
+			transform: scaleY(1);
+		}
+		95% {
+			transform: scaleY(0.08);
+		}
+	}
+
+	/* 耳朵以靠近头顶的一点为轴摆动 */
+	.ear {
+		transform-box: fill-box;
+		transform-origin: 50% 8%;
+	}
+	.ear-l {
+		animation: wiggle-l 4.2s ease-in-out infinite;
+	}
+	.ear-r {
+		animation: wiggle-r 4.2s ease-in-out infinite 0.35s;
+	}
+	@keyframes wiggle-l {
+		0%,
+		100% {
+			transform: rotate(0);
+		}
+		50% {
+			transform: rotate(6deg);
+		}
+	}
+	@keyframes wiggle-r {
+		0%,
+		100% {
+			transform: rotate(0);
+		}
+		50% {
+			transform: rotate(-6deg);
+		}
+	}
+
+	/* 气喘吁吁的舌头 */
+	.tongue {
+		transform-box: fill-box;
+		transform-origin: 50% 0;
+		animation: pant 1.1s ease-in-out infinite;
+	}
+	@keyframes pant {
+		0%,
+		100% {
+			transform: scaleY(1);
+		}
+		50% {
+			transform: scaleY(1.18);
+		}
+	}
+</style>

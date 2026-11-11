@@ -1,0 +1,42 @@
+---
+import { SITE_TITLE, url } from '../consts';
+
+const year = new Date().getFullYear();
+---
+
+<footer>
+	<div class="container">
+		<p>© {year} {SITE_TITLE} · 用 Astro 搭建，由海风和小狗驱动</p>
+		<p class="links">
+			<a href={url('blog/')}>文章</a>
+			<a href={url('media/')}>书影音</a>
+			<a href={url('about/')}>关于</a>
+			<a href={url('rss.xml')}>RSS 订阅</a>
+		</p>
+	</div>
+</footer>
+
+<style>
+	footer {
+		padding: 40px 0 56px;
+		background: var(--bg-alt);
+		border-top: 1px solid var(--line);
+		color: var(--text-2);
+		font-size: 0.8rem;
+		text-align: center;
+	}
+	p {
+		margin: 0 0 0.6em;
+	}
+	.links {
+		display: flex;
+		justify-content: center;
+		gap: 20px;
+	}
+	.links a {
+		color: var(--text-2);
+	}
+	.links a:hover {
+		color: var(--text);
+	}
+</style>

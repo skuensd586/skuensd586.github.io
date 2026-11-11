@@ -1,0 +1,76 @@
+---
+// 一层无限循环流动的海浪。
+// 路径由两个完全相同的周期拼成，横向平移 -50% 后正好首尾相接，所以循环无缝。
+interface Props {
+	/** 波浪颜色（CSS 值） */
+	color: string;
+	/** 横向漂移一周所需秒数，越小越快 */
+	duration?: number;
+	/** 上下起伏一周所需秒数 */
+	bob?: number;
+	/** 反向漂移 */
+	reverse?: boolean;
+	/** 高度，例如 "180px" */
+	height?: string;
+	/** 起伏延迟，用于错开各层 */
+	delay?: string;
+	opacity?: number;
+}
+
+const {
+	color,
+	duration = 22,
+	bob = 6,
+	reverse = false,
+	height = '180px',
+	delay = '0s',
+	opacity = 1,
+} = Astro.props;
+---
+
+<div
+	class="wave"
+	aria-hidden="true"
+	style={`--h:${height};--drift:${duration}s;--bob:${bob}s;--delay:${delay};--dir:${reverse ? 'reverse' : 'normal'};opacity:${opacity}`}
+>
+	<svg viewBox="0 0 2880 200" preserveAspectRatio="none" focusable="false">
+		<path
+			d="M0 100C360 20 720 180 1440 100C1800 20 2160 180 2880 100V200H0Z"
+			fill={color}></path>
+	</svg>
+</div>
+
+<style>
+	.wave {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: var(--h);
+		overflow: hidden;
+		animation: bob var(--bob) ease-in-out infinite var(--delay);
+		pointer-events: none;
+	}
+	svg {
+		display: block;
+		width: 200%;
+		max-width: none;
+		height: 100%;
+		animation: drift var(--drift) linear infinite;
+		animation-direction: var(--dir);
+	}
+	@keyframes drift {
+		to {
+			transform: translateX(-50%);
+		}
+	}
+	@keyframes bob {
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(10px);
+		}
+	}
+</style>

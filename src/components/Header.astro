@@ -1,0 +1,66 @@
+---
+import { SITE_TITLE, url } from '../consts';
+import HeaderLink from './HeaderLink.astro';
+---
+
+<header class="nav" data-nav>
+	<nav class="container" aria-label="主导航">
+		<a class="brand" href={url('')} aria-label={`${SITE_TITLE} 首页`}>
+			<span class="paw" aria-hidden="true">🐾</span>
+			{SITE_TITLE}
+		</a>
+		<div class="links">
+			<HeaderLink href={url('')}>首页</HeaderLink>
+			<HeaderLink href={url('blog/')}>文章</HeaderLink>
+			<HeaderLink href={url('media/')}>书影音</HeaderLink>
+			<HeaderLink href={url('about/')}>关于</HeaderLink>
+		</div>
+	</nav>
+</header>
+
+<style>
+	.nav {
+		position: sticky;
+		top: 0;
+		z-index: 100;
+		height: var(--nav-h);
+		background: var(--glass);
+		-webkit-backdrop-filter: saturate(180%) blur(20px);
+		backdrop-filter: saturate(180%) blur(20px);
+		border-bottom: 1px solid transparent;
+		transition: border-color 0.3s var(--ease);
+	}
+	.nav.scrolled {
+		border-bottom-color: var(--line);
+	}
+	nav {
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4em;
+		font-weight: 600;
+		font-size: 1rem;
+		letter-spacing: -0.02em;
+		color: var(--text);
+	}
+	.brand:hover {
+		text-decoration: none;
+		color: var(--text);
+	}
+	.paw {
+		display: inline-block;
+		transition: transform 0.5s var(--ease-out);
+	}
+	.brand:hover .paw {
+		transform: rotate(-20deg) scale(1.2);
+	}
+	.links {
+		display: flex;
+		gap: 28px;
+	}
+</style>

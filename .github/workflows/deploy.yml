@@ -1,0 +1,62 @@
+name: 构建并部署到 GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # 每天北京时间 06:30 同步一次豆瓣并重新部署
+  schedule:
+    - cron: '30 22 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write # 同步豆瓣后需要把 JSON 提交回仓库
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # 豆瓣 ID 是公开信息，直接写在这里；也可在仓库 Variables 中设置 DOUBAN_ID 覆盖。
+      - name: 同步豆瓣书影音
+        if: github.event_name != 'push'
+        env:
+          DOUBAN_ID: ${{ vars.DOUBAN_ID || '223894725' }}
+        run: node scripts/sync-douban.mjs
+
+      - name: 提交豆瓣数据变更
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/douban.json
+          git diff --cached --quiet || (git commit -m "chore: 同步豆瓣数据" && git push)
+
+      - run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

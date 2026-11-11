@@ -1,0 +1,33 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'a'>;
+
+const { href, class: className, ...props } = Astro.props;
+
+// 去掉 base 前缀后，用首段路径判断是否为当前页
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const current = Astro.url.pathname.slice(base.length).split('/').filter(Boolean)[0] ?? '';
+const target = String(href).slice(base.length).split('/').filter(Boolean)[0] ?? '';
+const isActive = current === target;
+---
+
+<a href={href} class:list={[className, { active: isActive }]} aria-current={isActive ? 'page' : undefined} {...props}>
+	<slot />
+</a>
+
+<style>
+	a {
+		color: var(--text);
+		opacity: 0.72;
+		font-size: 0.82rem;
+		letter-spacing: -0.005em;
+		transition: opacity 0.3s var(--ease);
+	}
+	a:hover,
+	a.active {
+		opacity: 1;
+		text-decoration: none;
+		color: var(--text);
+	}
+</style>

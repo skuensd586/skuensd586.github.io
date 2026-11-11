@@ -1,0 +1,445 @@
+---
+import Puppy from '../components/Puppy.astro';
+import Wave from '../components/Wave.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Base from '../layouts/Base.astro';
+import { SITE_DESCRIPTION, SITE_TITLE, url } from '../consts';
+import { getPosts } from '../lib/posts';
+
+const posts = (await getPosts()).slice(0, 3);
+---
+
+<Base title={SITE_TITLE} description={SITE_DESCRIPTION}>
+	<main>
+		<!-- ========== 首屏：海面、日光与小狗 ========== -->
+		<section class="hero">
+			<div class="sun" aria-hidden="true"></div>
+			<div class="cloud c1" aria-hidden="true"></div>
+			<div class="cloud c2" aria-hidden="true"></div>
+
+			<div class="hero-text container">
+				<p class="eyebrow">个人博客</p>
+				<h1>
+					<span class="line">你好，</span>
+					<span class="line grad">欢迎来到小海湾。</span>
+				</h1>
+				<p class="sub">写代码，读书，看电影，偶尔陪小狗看海。</p>
+				<p class="cta">
+					<a class="btn" href={url('blog/')}>读文章</a>
+					<a class="btn ghost" href={url('about/')}>认识我</a>
+				</p>
+			</div>
+
+			<!-- 从后到前：远浪 → 小狗 → 中浪 → 近浪 -->
+			<div class="layer l-back" data-parallax="0.06">
+				<Wave color="var(--sea-1)" height="42%" duration={34} bob={7} opacity={0.9} />
+			</div>
+			<div class="layer l-puppy" data-parallax="0.12">
+				<div class="puppy-wrap">
+					<Puppy />
+				</div>
+			</div>
+			<div class="layer l-mid" data-parallax="0.2">
+				<Wave color="var(--sea-2)" height="30%" duration={26} bob={5.5} reverse delay="-1.5s" />
+			</div>
+			<div class="layer l-front" data-parallax="0.3">
+				<Wave color="var(--sea-3)" height="19%" duration={18} bob={4.5} delay="-3s" />
+			</div>
+		</section>
+
+		<!-- ========== 逐词点亮的宣言 ========== -->
+		<section class="statement container">
+			<p data-words>
+				这里记录我写下的代码、读过的书、看过的电影，和海边那些慢下来的日子。每一篇都不着急，像潮水一样，来了又走，留下一点点光。
+			</p>
+		</section>
+
+		<!-- ========== 便当格：三个入口 ========== -->
+		<section class="bento container" aria-label="站点导航">
+			<a class="card c-posts reveal" href={url('blog/')}>
+				<span class="tag">文章</span>
+				<h2>把想法<br />写成文字。</h2>
+				<p>技术笔记、生活随想与长文。</p>
+				<span class="more">开始阅读 ›</span>
+			</a>
+			<a class="card c-media reveal" style="--d:.12s" href={url('media/')}>
+				<span class="tag">书影音</span>
+				<h2>读过的书，<br />看过的光影。</h2>
+				<p>与豆瓣同步，每天自动更新。</p>
+				<span class="more">看看清单 ›</span>
+			</a>
+			<a class="card c-about reveal" style="--d:.24s" href={url('about/')}>
+				<span class="tag">关于</span>
+				<h2>我是谁，<br />以及它是谁。</h2>
+				<p>一份简介，和一只小狗。</p>
+				<span class="more">了解更多 ›</span>
+			</a>
+		</section>
+
+		<!-- ========== 最新文章 ========== -->
+		<section class="latest container">
+			<h2 class="reveal">最新文章</h2>
+			<ul>
+				{
+					posts.map((post, i) => (
+						<li class="reveal" style={`--d:${i * 0.1}s`}>
+							<a href={url(`blog/${post.id}/`)}>
+								<time class="date">
+									<FormattedDate date={post.data.pubDate} />
+								</time>
+								<h3>{post.data.title}</h3>
+								<p>{post.data.description}</p>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+			{
+				posts.length === 0 && <p class="empty">还没有文章，去 <code>src/content/blog/</code> 写下第一篇吧。</p>
+			}
+			<p class="all reveal"><a href={url('blog/')}>全部文章 ›</a></p>
+		</section>
+	</main>
+</Base>
+
+<style>
+	/* ---------- 首屏 ---------- */
+	.hero {
+		position: relative;
+		height: calc(100svh - var(--nav-h));
+		min-height: 640px;
+		max-height: 960px;
+		overflow: hidden;
+		background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 70%);
+		isolation: isolate;
+	}
+
+	.sun {
+		position: absolute;
+		top: 8%;
+		right: 14%;
+		width: clamp(90px, 14vw, 180px);
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: radial-gradient(circle, #fff 0%, var(--sun) 38%, transparent 70%);
+		filter: blur(2px);
+		opacity: 0.9;
+		animation: glow 7s ease-in-out infinite;
+	}
+	@keyframes glow {
+		0%,
+		100% {
+			transform: scale(1);
+			opacity: 0.85;
+		}
+		50% {
+			transform: scale(1.08);
+			opacity: 1;
+		}
+	}
+
+	.cloud {
+		position: absolute;
+		height: 34px;
+		border-radius: 999px;
+		background: #fff;
+		opacity: 0.7;
+		filter: blur(6px);
+		animation: float-x linear infinite;
+	}
+	.cloud::before {
+		content: '';
+		position: absolute;
+		left: 22%;
+		top: -60%;
+		width: 44%;
+		height: 150%;
+		border-radius: 50%;
+		background: inherit;
+	}
+	.c1 {
+		top: 22%;
+		left: -10%;
+		width: 180px;
+		animation-duration: 90s;
+	}
+	.c2 {
+		top: 34%;
+		left: -20%;
+		width: 130px;
+		opacity: 0.5;
+		animation-duration: 130s;
+		animation-delay: -50s;
+	}
+	@keyframes float-x {
+		to {
+			transform: translateX(calc(100vw + 400px));
+		}
+	}
+	@media (prefers-color-scheme: dark) {
+		.cloud {
+			opacity: 0.08;
+		}
+	}
+
+	.hero-text {
+		position: relative;
+		z-index: 5;
+		padding-top: clamp(40px, 9vh, 96px);
+		text-align: center;
+	}
+	.eyebrow {
+		margin: 0 0 0.6em;
+		font-size: 1.05rem;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		color: var(--accent);
+		animation: rise 1s var(--ease-out) both;
+	}
+	h1 {
+		font-size: clamp(2.6rem, 8.2vw, 5.6rem);
+		line-height: 1.04;
+		letter-spacing: -0.045em;
+	}
+	.line {
+		display: block;
+		animation: rise 1.2s var(--ease-out) both;
+	}
+	.line:nth-child(1) {
+		animation-delay: 0.1s;
+	}
+	.line:nth-child(2) {
+		animation-delay: 0.25s;
+	}
+	.grad {
+		background: linear-gradient(100deg, var(--sea-3) 0%, var(--sea-2) 45%, #35c9d8 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		padding-bottom: 0.08em;
+	}
+	.sub {
+		margin: 1em 0 0;
+		font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+		color: var(--text-2);
+		animation: rise 1.2s var(--ease-out) 0.4s both;
+	}
+	.cta {
+		display: flex;
+		justify-content: center;
+		flex-wrap: wrap;
+		gap: 14px;
+		margin: 1.6em 0 0;
+		animation: rise 1.2s var(--ease-out) 0.55s both;
+	}
+	@keyframes rise {
+		from {
+			opacity: 0;
+			transform: translateY(32px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	/* 图层：外层做滚动视差，内层各自做起伏 */
+	.layer {
+		position: absolute;
+		inset: 0;
+		transform: translate3d(0, var(--py, 0px), 0);
+		pointer-events: none;
+	}
+	.l-back {
+		z-index: 1;
+	}
+	.l-puppy {
+		z-index: 2;
+	}
+	.l-mid {
+		z-index: 3;
+	}
+	.l-front {
+		z-index: 4;
+	}
+
+	.puppy-wrap {
+		position: absolute;
+		left: 50%;
+		bottom: 21%;
+		width: clamp(150px, 21vw, 250px);
+		margin-left: calc(clamp(150px, 21vw, 250px) / -2);
+		transform-origin: 50% 90%;
+		animation: ride 6s ease-in-out infinite;
+	}
+	@keyframes ride {
+		0%,
+		100% {
+			transform: translateY(0) rotate(-1.5deg);
+		}
+		50% {
+			transform: translateY(8px) rotate(1.5deg);
+		}
+	}
+
+	/* ---------- 宣言 ---------- */
+	.statement {
+		padding: clamp(80px, 14vw, 160px) 0;
+		max-width: 920px;
+	}
+	.statement p {
+		margin: 0;
+		font-size: clamp(1.6rem, 4.4vw, 3rem);
+		font-weight: 700;
+		line-height: 1.28;
+		letter-spacing: -0.035em;
+	}
+	.statement :global(.w) {
+		transition: opacity 0.5s var(--ease);
+	}
+	.statement :global(.words-ready .w) {
+		opacity: 0.18;
+	}
+	.statement :global(.words-ready .w.on) {
+		opacity: 1;
+	}
+
+	/* ---------- 便当格 ---------- */
+	.bento {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 20px;
+		padding-bottom: clamp(60px, 10vw, 120px);
+	}
+	.card {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		min-height: 380px;
+		padding: 32px;
+		border-radius: 28px;
+		color: var(--text);
+		background: var(--surface);
+		box-shadow: var(--shadow);
+		overflow: hidden;
+		transition:
+			transform 0.6s var(--ease-out),
+			box-shadow 0.6s var(--ease-out);
+	}
+	.card:hover {
+		transform: scale(1.025);
+		box-shadow: var(--shadow-hover);
+		text-decoration: none;
+		color: var(--text);
+	}
+	.card .tag {
+		font-size: 0.8rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		color: var(--text-2);
+	}
+	.card h2 {
+		margin: 0.5em 0 0.4em;
+		font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+	}
+	.card p {
+		margin: 0;
+		color: var(--text-2);
+	}
+	.card .more {
+		margin-top: auto;
+		font-weight: 500;
+		color: var(--accent);
+	}
+	.c-posts {
+		background: linear-gradient(160deg, #e6f6ff 0%, #bfe6fb 100%);
+		--text: #0b2a4a;
+		--text-2: #2b5d86;
+	}
+	.c-media {
+		background: linear-gradient(160deg, #fff1dc 0%, #ffd9a8 100%);
+		--text: #4a2a07;
+		--text-2: #8a5a22;
+	}
+	.c-about {
+		background: linear-gradient(160deg, #e9f9ee 0%, #bfeacc 100%);
+		--text: #0f3a22;
+		--text-2: #3b7a57;
+	}
+	@media (prefers-color-scheme: dark) {
+		.c-posts {
+			background: linear-gradient(160deg, #0d3156 0%, #0a4a85 100%);
+			--text: #eaf6ff;
+			--text-2: #9cc9ee;
+		}
+		.c-media {
+			background: linear-gradient(160deg, #4a2d0c 0%, #7a4a14 100%);
+			--text: #fff3e1;
+			--text-2: #e0b98a;
+		}
+		.c-about {
+			background: linear-gradient(160deg, #0f3a24 0%, #1a5c3a 100%);
+			--text: #e9fff1;
+			--text-2: #9ad6b4;
+		}
+	}
+
+	/* ---------- 最新文章 ---------- */
+	.latest {
+		padding-bottom: clamp(70px, 10vw, 130px);
+		max-width: 860px;
+	}
+	.latest h2 {
+		font-size: clamp(2rem, 4.6vw, 3rem);
+		margin-bottom: 0.6em;
+	}
+	.latest ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.latest li a {
+		display: block;
+		padding: 28px 0;
+		border-top: 1px solid var(--line);
+		color: var(--text);
+		transition: transform 0.5s var(--ease-out);
+	}
+	.latest li a:hover {
+		text-decoration: none;
+		transform: translateX(8px);
+	}
+	.latest li a:hover h3 {
+		color: var(--accent);
+	}
+	.latest h3 {
+		font-size: 1.6rem;
+		transition: color 0.3s var(--ease);
+	}
+	.latest .date {
+		display: block;
+		margin-bottom: 0.4em;
+		font-size: 0.85rem;
+		color: var(--text-2);
+	}
+	.latest li p {
+		margin: 0.5em 0 0;
+		color: var(--text-2);
+	}
+	.latest .all {
+		margin-top: 1.4em;
+		font-weight: 500;
+	}
+	.empty {
+		color: var(--text-2);
+	}
+
+	@media (max-width: 860px) {
+		.bento {
+			grid-template-columns: 1fr;
+		}
+		.card {
+			min-height: 260px;
+		}
+	}
+</style>

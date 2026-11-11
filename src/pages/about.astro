@@ -1,0 +1,163 @@
+---
+import Puppy from '../components/Puppy.astro';
+import Base from '../layouts/Base.astro';
+import { url } from '../consts';
+
+// ✏️ 把下面的内容改成你自己的信息
+const profile = {
+	name: '待补充',
+	tagline: '待补充',
+	bio: ['待补充：一段自我介绍。', '待补充：兴趣爱好，以及为什么写这个博客。'],
+	now: [
+		{ k: '正在做', v: '待补充' },
+		{ k: '正在读', v: '待补充' },
+		{ k: '正在学', v: '待补充' },
+	],
+	skills: ['待补充', '待补充', '待补充'],
+	contacts: [
+		{ label: 'GitHub（待补充）', href: '#' },
+		{ label: '邮箱（待补充）', href: '#' },
+	],
+};
+---
+
+<Base title="关于 · 小海湾" description={profile.tagline}>
+	<main>
+		<section class="intro container">
+			<div class="avatar reveal" aria-hidden="true">
+				<Puppy />
+			</div>
+			<h1 class="reveal" style="--d:.08s">{profile.name}</h1>
+			<p class="tagline reveal" style="--d:.16s">{profile.tagline}</p>
+		</section>
+
+		<section class="block container reveal">
+			<h2>关于我</h2>
+			{profile.bio.map((p) => <p>{p}</p>)}
+		</section>
+
+		<section class="block container reveal">
+			<h2>近况</h2>
+			<dl class="now">
+				{
+					profile.now.map((n) => (
+						<div>
+							<dt>{n.k}</dt>
+							<dd>{n.v}</dd>
+						</div>
+					))
+				}
+			</dl>
+			<p><a href={url('media/')}>更多书影音记录 ›</a></p>
+		</section>
+
+		<section class="block container reveal">
+			<h2>技能</h2>
+			<ul class="chips">
+				{profile.skills.map((s) => <li>{s}</li>)}
+			</ul>
+		</section>
+
+		{
+			profile.contacts.length > 0 && (
+				<section class="block container reveal">
+					<h2>联系我</h2>
+					<ul class="contacts">
+						{profile.contacts.map((c) => (
+							<li>
+								<a href={c.href}>{c.label}</a>
+							</li>
+						))}
+					</ul>
+				</section>
+			)
+		}
+	</main>
+</Base>
+
+<style>
+	main {
+		padding-bottom: clamp(64px, 10vw, 120px);
+	}
+	.intro {
+		max-width: 760px;
+		padding-block: clamp(48px, 9vw, 104px) clamp(24px, 4vw, 48px);
+		text-align: center;
+	}
+	.avatar {
+		width: clamp(120px, 20vw, 168px);
+		aspect-ratio: 1;
+		margin: 0 auto 28px;
+		padding: 18px 14px 0;
+		border-radius: 50%;
+		background: linear-gradient(160deg, var(--sky-top), var(--sea-1));
+		box-shadow: var(--shadow);
+		overflow: hidden;
+	}
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 3.8rem);
+		letter-spacing: -0.04em;
+	}
+	.tagline {
+		margin: 0.6em 0 0;
+		font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+		color: var(--text-2);
+	}
+	.block {
+		max-width: 700px;
+		padding-block: clamp(28px, 5vw, 48px);
+		border-top: 1px solid var(--line);
+	}
+	.block h2 {
+		margin-bottom: 0.6em;
+		font-size: 1.6rem;
+	}
+	.block p {
+		font-size: 1.1rem;
+		line-height: 1.85;
+	}
+	.now {
+		display: grid;
+		gap: 10px;
+		margin: 0 0 1em;
+	}
+	.now div {
+		display: flex;
+		gap: 16px;
+		padding: 14px 18px;
+		border-radius: 16px;
+		background: var(--bg-alt);
+	}
+	.now dt {
+		min-width: 4.5em;
+		color: var(--text-2);
+	}
+	.now dd {
+		margin: 0;
+	}
+	.chips,
+	.contacts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.chips li,
+	.contacts a {
+		padding: 6px 16px;
+		border-radius: 999px;
+		background: var(--bg-alt);
+		color: var(--text);
+		font-size: 0.95rem;
+	}
+	.contacts a {
+		background: var(--accent);
+		color: #fff;
+	}
+	.contacts a:hover {
+		text-decoration: none;
+		background: var(--accent-hover);
+	}
+</style>
