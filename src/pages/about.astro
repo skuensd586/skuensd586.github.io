@@ -1,7 +1,6 @@
 ---
-import Puppy from '../components/Puppy.astro';
 import Base from '../layouts/Base.astro';
-import { url } from '../consts';
+import { SITE_TITLE, url } from '../consts';
 
 // ✏️ 把下面的内容改成你自己的信息
 const profile = {
@@ -9,9 +8,9 @@ const profile = {
 	tagline: '待补充',
 	bio: ['待补充：一段自我介绍。', '待补充：兴趣爱好，以及为什么写这个博客。'],
 	now: [
-		{ k: '正在做', v: '待补充' },
-		{ k: '正在读', v: '待补充' },
-		{ k: '正在学', v: '待补充' },
+		{ k: '在做', v: '待补充' },
+		{ k: '在读', v: '待补充' },
+		{ k: '在学', v: '待补充' },
 	],
 	skills: ['待补充', '待补充', '待补充'],
 	contacts: [
@@ -21,23 +20,26 @@ const profile = {
 };
 ---
 
-<Base title="关于 · 小海湾" description={profile.tagline}>
+<Base title={`关于 · ${SITE_TITLE}`} description={profile.tagline}>
 	<main>
 		<section class="intro container">
-			<div class="avatar reveal" aria-hidden="true">
-				<Puppy />
-			</div>
+			<p class="label reveal">关　于</p>
 			<h1 class="reveal" style="--d:.08s">{profile.name}</h1>
 			<p class="tagline reveal" style="--d:.16s">{profile.tagline}</p>
+			<svg class="rule reveal" style="--d:.24s" viewBox="0 0 120 12" aria-hidden="true">
+				<path d="M0 6C10 0 20 12 30 6S50 0 60 6S80 12 90 6S110 0 120 6" fill="none" stroke="currentColor" stroke-width="1"></path>
+			</svg>
 		</section>
 
 		<section class="block container reveal">
-			<h2>关于我</h2>
-			{profile.bio.map((p) => <p>{p}</p>)}
+			<h2 class="label">自　述</h2>
+			<div class="text">
+				{profile.bio.map((p) => <p>{p}</p>)}
+			</div>
 		</section>
 
 		<section class="block container reveal">
-			<h2>近况</h2>
+			<h2 class="label">近　况</h2>
 			<dl class="now">
 				{
 					profile.now.map((n) => (
@@ -48,11 +50,11 @@ const profile = {
 					))
 				}
 			</dl>
-			<p><a href={url('media/')}>更多书影音记录 ›</a></p>
+			<p class="more"><a class="link" href={url('media/')}>更多书影音记录</a></p>
 		</section>
 
 		<section class="block container reveal">
-			<h2>技能</h2>
+			<h2 class="label">所　长</h2>
 			<ul class="chips">
 				{profile.skills.map((s) => <li>{s}</li>)}
 			</ul>
@@ -61,11 +63,13 @@ const profile = {
 		{
 			profile.contacts.length > 0 && (
 				<section class="block container reveal">
-					<h2>联系我</h2>
+					<h2 class="label">联　系</h2>
 					<ul class="contacts">
 						{profile.contacts.map((c) => (
 							<li>
-								<a href={c.href}>{c.label}</a>
+								<a class="link" href={c.href}>
+									{c.label}
+								</a>
 							</li>
 						))}
 					</ul>
@@ -77,87 +81,83 @@ const profile = {
 
 <style>
 	main {
-		padding-bottom: clamp(64px, 10vw, 120px);
+		padding-bottom: clamp(72px, 10vw, 130px);
 	}
 	.intro {
 		max-width: 760px;
-		padding-block: clamp(48px, 9vw, 104px) clamp(24px, 4vw, 48px);
+		padding-block: clamp(64px, 11vw, 136px) clamp(32px, 5vw, 56px);
 		text-align: center;
 	}
-	.avatar {
-		width: clamp(120px, 20vw, 168px);
-		aspect-ratio: 1;
-		margin: 0 auto 28px;
-		padding: 18px 14px 0;
-		border-radius: 50%;
-		background: linear-gradient(160deg, var(--sky-top), var(--sea-1));
-		box-shadow: var(--shadow);
-		overflow: hidden;
-	}
 	h1 {
-		font-size: clamp(2.4rem, 6vw, 3.8rem);
-		letter-spacing: -0.04em;
+		margin-top: 0.7em;
+		font-size: clamp(2.2rem, 6vw, 3.6rem);
+		font-weight: 400;
+		letter-spacing: 0.2em;
 	}
 	.tagline {
-		margin: 0.6em 0 0;
-		font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+		margin: 1em 0 0;
 		color: var(--text-2);
+		font-size: clamp(1rem, 2vw, 1.2rem);
+		letter-spacing: 0.18em;
+	}
+	.rule {
+		width: 96px;
+		margin-top: 2.4em;
+		color: var(--text-2);
+		opacity: 0.6;
 	}
 	.block {
-		max-width: 700px;
-		padding-block: clamp(28px, 5vw, 48px);
+		display: grid;
+		grid-template-columns: 8em 1fr;
+		gap: 12px 32px;
+		max-width: 760px;
+		padding-block: 36px;
 		border-top: 1px solid var(--line);
 	}
 	.block h2 {
-		margin-bottom: 0.6em;
-		font-size: 1.6rem;
+		margin: 0.5em 0 0;
+		font-weight: 400;
 	}
-	.block p {
-		font-size: 1.1rem;
-		line-height: 1.85;
+	.text p {
+		margin: 0 0 1.2em;
+		font-size: 1.05rem;
+		line-height: 2;
+	}
+	.text p:last-child {
+		margin-bottom: 0;
 	}
 	.now {
 		display: grid;
-		gap: 10px;
-		margin: 0 0 1em;
+		gap: 4px;
+		margin: 0;
 	}
 	.now div {
 		display: flex;
-		gap: 16px;
-		padding: 14px 18px;
-		border-radius: 16px;
-		background: var(--bg-alt);
+		gap: 20px;
+		padding: 8px 0;
 	}
 	.now dt {
-		min-width: 4.5em;
+		min-width: 3em;
 		color: var(--text-2);
 	}
 	.now dd {
 		margin: 0;
 	}
+	.more {
+		margin: 1.2em 0 0;
+	}
 	.chips,
 	.contacts {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 10px;
+		gap: 10px 28px;
 		list-style: none;
 		margin: 0;
 		padding: 0;
 	}
-	.chips li,
-	.contacts a {
-		padding: 6px 16px;
-		border-radius: 999px;
-		background: var(--bg-alt);
-		color: var(--text);
-		font-size: 0.95rem;
-	}
-	.contacts a {
-		background: var(--accent);
-		color: #fff;
-	}
-	.contacts a:hover {
-		text-decoration: none;
-		background: var(--accent-hover);
+	@media (max-width: 720px) {
+		.block {
+			grid-template-columns: 1fr;
+		}
 	}
 </style>

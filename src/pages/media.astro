@@ -1,12 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
 import data from '../data/douban.json';
+import { SITE_TITLE, url } from '../consts';
 
 type Item = {
 	type: 'book' | 'movie' | 'music';
 	status: 'wish' | 'doing' | 'done';
 	title: string;
 	url: string;
+	/** 本站内的封面路径（public/ 下），没有时显示题字封面 */
 	cover?: string;
 	rating?: number; // 1-5
 	comment?: string;
@@ -26,27 +28,28 @@ const count = (t: string) => items.filter((i) => i.type === t).length;
 const updated = data.updated ? new Date(data.updated) : null;
 ---
 
-<Base title="书影音 · 小海湾" description="我在豆瓣上标记的书、电影和音乐，每天自动同步。">
+<Base title={`书影音 · ${SITE_TITLE}`} description="我在豆瓣上标记的书、电影和音乐，每天自动同步。">
 	<main class="container">
 		<header class="head">
-			<h1>书影音</h1>
-			<p>
-				读过的书，看过的光影，听过的旋律。数据来自豆瓣，每天自动同步。
-				{updated && <span class="sync">最近同步：{updated.toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })}</span>}
+			<p class="label reveal">书　影　音</p>
+			<h1 class="reveal" style="--d:.08s">读过的，看过的，听过的</h1>
+			<p class="intro reveal" style="--d:.16s">
+				数据来自豆瓣，每天自动同步。
+				{updated && <span>最近一次：{updated.toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })}</span>}
 			</p>
 		</header>
 
-		<div class="filters" role="group" aria-label="筛选">
+		<div class="filters label" role="group" aria-label="筛选">
 			<div class="seg" data-group="type">
-				<button class="on" data-v="all">全部 <i>{items.length}</i></button>
-				<button data-v="book">书 <i>{count('book')}</i></button>
-				<button data-v="movie">影 <i>{count('movie')}</i></button>
-				<button data-v="music">音 <i>{count('music')}</i></button>
+				<button class="on" data-v="all">全部 {items.length}</button>
+				<button data-v="book">书 {count('book')}</button>
+				<button data-v="movie">影 {count('movie')}</button>
+				<button data-v="music">音 {count('music')}</button>
 			</div>
 			<div class="seg" data-group="status">
-				<button class="on" data-v="all">全部状态</button>
-				<button data-v="done">已完成</button>
-				<button data-v="doing">进行中</button>
+				<button class="on" data-v="all">不限</button>
+				<button data-v="done">完成</button>
+				<button data-v="doing">进行</button>
 				<button data-v="wish">想要</button>
 			</div>
 		</div>
@@ -57,32 +60,40 @@ const updated = data.updated ? new Date(data.updated) : null;
 					{items.map((it) => (
 						<li class="item" data-type={it.type} data-status={it.status}>
 							<a href={it.url} target="_blank" rel="noopener noreferrer">
-								<div class="cover">
-									{it.cover ? (
-										<img src={it.cover} alt="" loading="lazy" referrerpolicy="no-referrer" />
-									) : (
-										<span class="ph">{typeLabel[it.type]}</span>
-									)}
-									<span class="badge">{statusLabel[it.type][it.status]}</span>
+								<div class={`cover ${it.type}${it.cover ? ' has-img' : ''}`}>
+									{it.cover && <img src={url(it.cover)} alt={it.title} loading="lazy" decoding="async" />}
+									<span class="top label">{statusLabel[it.type][it.status]}</span>
+									<span class="title">{it.title}</span>
+									<span class="kind label">{typeLabel[it.type]}</span>
 								</div>
-								<h3>{it.title}</h3>
-								{it.rating ? <p class="stars" aria-label={`${it.rating} 星`}>{'★'.repeat(it.rating)}{'☆'.repeat(5 - it.rating)}</p> : null}
-								{it.comment && <p class="comment">{it.comment}</p>}
+								<div class="info">
+									{it.rating ? (
+										<p class="stars" aria-label={`${it.rating} 星`}>
+											{'★'.repeat(it.rating)}
+											<span>{'★'.repeat(5 - it.rating)}</span>
+										</p>
+									) : null}
+									{it.comment && <p class="comment">{it.comment}</p>}
+								</div>
 							</a>
 						</li>
 					))}
 				</ul>
 			) : (
 				<div class="empty">
-					<p class="big">这里还是一片空白海滩 🏖️</p>
+					<p class="big">这里还是一片空白的海滩</p>
 					<p>
-						还没有同步到豆瓣数据。设置好你的豆瓣 ID 后，运行
-						<code>DOUBAN_ID=你的ID npm run sync:douban</code>，或等待 GitHub Actions 每天自动同步。
+						还没有同步到豆瓣数据。运行 <code>DOUBAN_ID=你的ID npm run sync:douban</code>，或等待每天的自动同步。
 					</p>
 				</div>
 			)
 		}
 		<p class="none" hidden>这个筛选下没有内容。</p>
+
+		<p class="credit label">
+			影视封面与数据来自 TMDB，图书封面来自 Open Library。This product uses the TMDB API but is not endorsed
+			or certified by TMDB.
+		</p>
 	</main>
 </Base>
 
@@ -117,59 +128,55 @@ const updated = data.updated ? new Date(data.updated) : null;
 
 <style>
 	main {
-		padding-block: clamp(48px, 8vw, 96px) clamp(64px, 10vw, 120px);
+		padding-block: clamp(56px, 9vw, 112px) clamp(72px, 10vw, 130px);
 	}
 	.head h1 {
-		font-size: clamp(2.6rem, 7vw, 4.4rem);
-		letter-spacing: -0.045em;
+		margin-top: 0.5em;
+		font-size: clamp(2rem, 5.4vw, 3.2rem);
+		font-weight: 400;
+		letter-spacing: 0.16em;
 	}
-	.head p {
-		margin: 0.5em 0 0;
-		max-width: 640px;
+	.intro {
+		margin: 1em 0 0;
 		color: var(--text-2);
-		font-size: 1.15rem;
+		font-size: 0.95rem;
+		letter-spacing: 0.12em;
 	}
-	.sync {
-		display: block;
-		margin-top: 0.3em;
-		font-size: 0.9rem;
+	.intro span {
+		margin-left: 1.2em;
 	}
 
 	.filters {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 14px 24px;
-		margin: 36px 0 32px;
+		gap: 12px 40px;
+		margin: 48px 0 40px;
+		padding-block: 16px;
+		border-block: 1px solid var(--line);
 	}
 	.seg {
-		display: inline-flex;
-		padding: 4px;
-		border-radius: 999px;
-		background: var(--bg-alt);
+		display: flex;
+		gap: 22px;
 	}
 	.seg button {
-		padding: 6px 16px;
+		padding: 0 0 3px;
 		border: 0;
-		border-radius: 999px;
-		background: transparent;
+		border-bottom: 1px solid transparent;
+		background: none;
 		color: var(--text-2);
 		font: inherit;
-		font-size: 0.9rem;
+		letter-spacing: inherit;
 		cursor: pointer;
 		transition:
-			background 0.3s var(--ease),
 			color 0.3s var(--ease),
-			box-shadow 0.3s var(--ease);
+			border-color 0.4s var(--ease);
 	}
-	.seg button i {
-		font-style: normal;
-		font-size: 0.75rem;
-		opacity: 0.7;
+	.seg button:hover {
+		color: var(--text);
 	}
 	.seg button.on {
-		background: var(--surface);
 		color: var(--text);
-		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+		border-bottom-color: var(--text);
 	}
 
 	.grid {
@@ -177,8 +184,8 @@ const updated = data.updated ? new Date(data.updated) : null;
 		margin: 0;
 		padding: 0;
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-		gap: 28px 20px;
+		grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+		gap: 40px 28px;
 	}
 	.item[hidden] {
 		display: none;
@@ -187,74 +194,134 @@ const updated = data.updated ? new Date(data.updated) : null;
 		display: block;
 		color: var(--text);
 	}
-	.item a:hover {
-		text-decoration: none;
-	}
+
+	/* ---------- 题字封面：纸色 + 竖排书名 + 内框细线 ---------- */
 	.cover {
+		--paper: #e9dfcf;
+		--ink: #4b4032;
 		position: relative;
+		display: grid;
+		grid-template-rows: auto 1fr auto;
+		justify-items: center;
 		aspect-ratio: 2 / 3;
-		border-radius: 14px;
-		overflow: hidden;
-		background: linear-gradient(160deg, var(--sea-1), var(--sea-2));
+		padding: 18px 12px 14px;
+		background: var(--paper);
+		color: var(--ink);
 		box-shadow: var(--shadow);
+		overflow: hidden;
 		transition:
-			transform 0.6s var(--ease-out),
-			box-shadow 0.6s var(--ease-out);
+			transform 0.7s var(--ease-out),
+			box-shadow 0.7s var(--ease-out);
+	}
+	.cover::before {
+		content: '';
+		position: absolute;
+		inset: 8px;
+		border: 1px solid color-mix(in srgb, var(--ink) 32%, transparent);
+		pointer-events: none;
+	}
+	.cover.movie {
+		--paper: #d3e0e4;
+		--ink: #2f4a56;
+	}
+	.cover.music {
+		--paper: #dbe0cf;
+		--ink: #3d4a35;
+	}
+	@media (prefers-color-scheme: dark) {
+		.cover {
+			--paper: #2b2a26;
+			--ink: #d9cfbf;
+		}
+		.cover.movie {
+			--paper: #1c2a31;
+			--ink: #b6ccd5;
+		}
+		.cover.music {
+			--paper: #232a20;
+			--ink: #c4cdb8;
+		}
 	}
 	.item a:hover .cover {
-		transform: translateY(-6px) scale(1.03);
+		transform: translateY(-6px);
 		box-shadow: var(--shadow-hover);
 	}
+	.cover .label {
+		color: inherit;
+		opacity: 0.7;
+		font-size: 0.7rem;
+		letter-spacing: 0.3em;
+	}
+	/* 有真实封面时：图片铺满，只保留左上角的状态角标 */
+	.cover.has-img {
+		padding: 0;
+		background: var(--bg-alt);
+	}
+	.cover.has-img::before,
+	.cover.has-img .title,
+	.cover.has-img .kind {
+		display: none;
+	}
 	.cover img {
+		position: absolute;
+		inset: 0;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 		display: block;
 	}
-	.ph {
-		position: absolute;
-		inset: 0;
-		display: grid;
-		place-items: center;
-		font-size: 2.4rem;
-		font-weight: 700;
-		color: rgba(255, 255, 255, 0.85);
-	}
-	.badge {
+	.cover.has-img .top {
 		position: absolute;
 		left: 8px;
 		top: 8px;
-		padding: 2px 9px;
-		border-radius: 999px;
-		background: rgba(0, 0, 0, 0.55);
-		-webkit-backdrop-filter: blur(8px);
-		backdrop-filter: blur(8px);
+		padding: 1px 8px;
+		background: rgba(20, 20, 20, 0.55);
+		-webkit-backdrop-filter: blur(6px);
+		backdrop-filter: blur(6px);
 		color: #fff;
-		font-size: 0.72rem;
+		opacity: 1;
+		letter-spacing: 0.2em;
 	}
-	.item h3 {
-		margin: 10px 0 2px;
-		font-size: 0.95rem;
-		font-weight: 600;
-		line-height: 1.3;
-		letter-spacing: -0.01em;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		-webkit-box-orient: vertical;
+	.credit {
+		margin-top: 72px;
+		padding-top: 20px;
+		border-top: 1px solid var(--line);
+		font-size: 0.7rem;
+		letter-spacing: 0.08em;
+		line-height: 1.8;
+		opacity: 0.8;
+	}
+	.title {
+		align-self: center;
+		max-height: 100%;
 		overflow: hidden;
+		writing-mode: vertical-rl;
+		font-size: 1.15rem;
+		font-weight: 500;
+		line-height: 1.5;
+		letter-spacing: 0.3em;
+		text-align: start;
+	}
+
+	.info {
+		padding-top: 12px;
 	}
 	.stars {
 		margin: 0;
-		color: #ff9f0a;
-		font-size: 0.8rem;
-		letter-spacing: 1px;
+		color: var(--accent);
+		font-size: 0.7rem;
+		letter-spacing: 3px;
+		line-height: 1.4;
+	}
+	.stars span {
+		opacity: 0.2;
 	}
 	.comment {
-		margin: 4px 0 0;
+		margin: 6px 0 0;
 		color: var(--text-2);
-		font-size: 0.8rem;
-		line-height: 1.45;
+		font-size: 0.82rem;
+		line-height: 1.7;
+		letter-spacing: 0.04em;
 		display: -webkit-box;
 		-webkit-line-clamp: 3;
 		line-clamp: 3;
@@ -263,16 +330,15 @@ const updated = data.updated ? new Date(data.updated) : null;
 	}
 
 	.empty {
-		padding: 56px 24px;
-		border-radius: 28px;
-		background: var(--bg-alt);
+		padding: 64px 24px;
+		border: 1px solid var(--line);
 		text-align: center;
 		color: var(--text-2);
 	}
 	.empty .big {
-		font-size: 1.5rem;
-		font-weight: 600;
+		font-size: 1.4rem;
 		color: var(--text);
+		letter-spacing: 0.12em;
 	}
 	.none {
 		color: var(--text-2);

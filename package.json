@@ -11,7 +11,9 @@
     "preview": "astro preview",
     "astro": "astro",
     "new": "node scripts/new-post.mjs",
-    "sync:douban": "node scripts/sync-douban.mjs"
+    "sync:douban": "node scripts/sync-douban.mjs",
+    "import:douban": "node scripts/import-douban.mjs",
+    "covers": "node scripts/fetch-covers.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.1.3",

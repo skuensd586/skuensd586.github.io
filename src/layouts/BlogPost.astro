@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import FormattedDate from '../components/FormattedDate.astro';
 import Base from './Base.astro';
-import { url } from '../consts';
+import { SITE_TITLE, url } from '../consts';
 
 type Props = Partial<CollectionEntry<'blog'>['data']> &
 	Pick<CollectionEntry<'blog'>['data'], 'title' | 'description' | 'pubDate'>;
@@ -11,7 +11,7 @@ type Props = Partial<CollectionEntry<'blog'>['data']> &
 const { title, description, pubDate, updatedDate, heroImage, tags = [] } = Astro.props;
 ---
 
-<Base title={`${title} · 小海湾`} description={description} image={heroImage}>
+<Base title={`${title} · ${SITE_TITLE}`} description={description} image={heroImage}>
 	<main>
 		<article>
 			<header class="head container">
@@ -56,18 +56,22 @@ const { title, description, pubDate, updatedDate, heroImage, tags = [] } = Astro
 		text-align: center;
 	}
 	.date {
-		margin: 0 0 1em;
-		font-size: 0.9rem;
+		margin: 0 0 1.6em;
+		font-family: var(--font-sans);
+		font-size: 0.8rem;
+		letter-spacing: 0.22em;
 		color: var(--text-2);
 	}
 	h1 {
-		font-size: clamp(2.2rem, 6vw, 3.8rem);
-		line-height: 1.1;
-		letter-spacing: -0.04em;
+		font-size: clamp(2rem, 5.4vw, 3.2rem);
+		font-weight: 400;
+		line-height: 1.5;
+		letter-spacing: 0.12em;
 	}
 	.desc {
-		margin: 1em 0 0;
-		font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+		margin: 1.4em 0 0;
+		font-size: clamp(1rem, 2vw, 1.2rem);
+		letter-spacing: 0.14em;
 		color: var(--text-2);
 	}
 	.hero {
@@ -78,15 +82,16 @@ const { title, description, pubDate, updatedDate, heroImage, tags = [] } = Astro
 		display: block;
 		width: 100%;
 		height: auto;
-		border-radius: 28px;
+		border-radius: 2px;
 		box-shadow: var(--shadow);
 	}
 
 	/* ---------- 正文排版 ---------- */
 	.prose {
-		max-width: 700px;
-		font-size: 1.12rem;
-		line-height: 1.85;
+		max-width: 680px;
+		font-size: 1.1rem;
+		line-height: 2.05;
+		letter-spacing: 0.03em;
 	}
 	.prose :global(h2) {
 		margin: 2.2em 0 0.6em;

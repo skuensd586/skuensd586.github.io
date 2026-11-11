@@ -1,65 +1,68 @@
 /* ============================================================
-   设计令牌：苹果风格的留白、字体、动效曲线，加上海洋色板
+   设计令牌：纸张的暖白、墨色的文字、雾蓝的海。衬线字体，宽松字距。
    ============================================================ */
 :root {
 	color-scheme: light dark;
 
-	--bg: #fbfbfd;
-	--bg-alt: #f5f5f7;
-	--surface: #ffffff;
-	--text: #1d1d1f;
-	--text-2: #6e6e73;
-	--line: rgba(0, 0, 0, 0.08);
-	--accent: #0071e3;
-	--accent-hover: #0077ed;
-	--glass: rgba(251, 251, 253, 0.72);
+	--bg: #f6f3ec;
+	--bg-alt: #ece8df;
+	--surface: #faf8f3;
+	--text: #2a2926;
+	--text-2: #7b776d;
+	--line: rgba(42, 41, 38, 0.14);
+	--accent: #3d6679;
+	--accent-hover: #2c5164;
+	--glass: rgba(246, 243, 236, 0.78);
+	--sky: #e3ecee;
 
-	/* 海洋色板 */
-	--sky-top: #cfeeff;
-	--sky-bottom: #f4fbff;
-	--sea-1: #8fdcf9;
-	--sea-2: #3aa7ee;
-	--sea-3: #0c6bc4;
-	--sea-4: #07407f;
-	--sun: #ffe9a8;
+	/* 海：由远及近，雾蓝渐深 */
+	--wave-1: #dce7ea;
+	--wave-2: #bfd1d7;
+	--wave-3: #9bb7c1;
+	--wave-4: #6f93a1;
+	--wave-line: rgba(255, 255, 255, 0.7);
+	--sun: #f1e2c6;
 
-	--shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 40, 90, 0.08);
-	--shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.06), 0 24px 56px rgba(0, 40, 90, 0.16);
+	--shadow: 0 1px 2px rgba(42, 41, 38, 0.06), 0 10px 28px rgba(42, 41, 38, 0.07);
+	--shadow-hover: 0 2px 6px rgba(42, 41, 38, 0.08), 0 18px 44px rgba(42, 41, 38, 0.13);
 
-	/* 苹果常用的缓动曲线 */
 	--ease: cubic-bezier(0.28, 0.11, 0.32, 1);
 	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-	--font:
-		-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue',
-		'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+	/* 正文与标题用宋体系衬线；界面小字用无衬线 */
+	--font-serif:
+		'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'SimSun',
+		Georgia, 'Times New Roman', serif;
+	--font-sans:
+		-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Hiragino Sans GB',
+		'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
 	--font-mono: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-	--nav-h: 52px;
+	--nav-h: 56px;
 }
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		--bg: #000000;
-		--bg-alt: #0b0b0d;
-		--surface: #161618;
-		--text: #f5f5f7;
-		--text-2: #a1a1a6;
-		--line: rgba(255, 255, 255, 0.12);
-		--accent: #2997ff;
-		--accent-hover: #4aa8ff;
-		--glass: rgba(22, 22, 24, 0.72);
+		--bg: #0f151b;
+		--bg-alt: #151c23;
+		--surface: #19212a;
+		--text: #e3e6e8;
+		--text-2: #8f99a1;
+		--line: rgba(227, 230, 232, 0.14);
+		--accent: #8fb8cc;
+		--accent-hover: #acd0e2;
+		--glass: rgba(15, 21, 27, 0.78);
+		--sky: #14212b;
 
-		--sky-top: #04162e;
-		--sky-bottom: #0a2a52;
-		--sea-1: #1c6fb0;
-		--sea-2: #0f4f8f;
-		--sea-3: #09366a;
-		--sea-4: #04203f;
-		--sun: #9bb7ff;
+		--wave-1: #16242f;
+		--wave-2: #1a2e3c;
+		--wave-3: #1f394b;
+		--wave-4: #254658;
+		--wave-line: rgba(160, 200, 220, 0.28);
+		--sun: #2a3a4a;
 
-		--shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.5);
-		--shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.5), 0 24px 56px rgba(0, 0, 0, 0.7);
+		--shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.45);
+		--shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.5), 0 18px 44px rgba(0, 0, 0, 0.6);
 	}
 }
 
@@ -79,10 +82,10 @@ html {
 
 body {
 	margin: 0;
-	font-family: var(--font);
+	font-family: var(--font-serif);
 	font-size: 17px;
-	line-height: 1.6;
-	letter-spacing: -0.01em;
+	line-height: 1.9;
+	letter-spacing: 0.02em;
 	color: var(--text);
 	background: var(--bg);
 	-webkit-font-smoothing: antialiased;
@@ -95,9 +98,9 @@ h2,
 h3,
 h4 {
 	margin: 0;
-	font-weight: 700;
-	line-height: 1.1;
-	letter-spacing: -0.03em;
+	font-weight: 500;
+	line-height: 1.35;
+	letter-spacing: 0.06em;
 }
 
 p {
@@ -110,7 +113,6 @@ a {
 }
 a:hover {
 	color: var(--accent-hover);
-	text-decoration: underline;
 }
 
 img,
@@ -119,8 +121,16 @@ svg {
 }
 
 .container {
-	width: min(1080px, calc(100% - 48px));
+	width: min(1040px, calc(100% - 56px));
 	margin-inline: auto;
+}
+
+/* 界面小字：无衬线、大字距、全小写感的标签 */
+.label {
+	font-family: var(--font-sans);
+	font-size: 0.78rem;
+	letter-spacing: 0.22em;
+	color: var(--text-2);
 }
 
 .sr-only {
@@ -136,46 +146,42 @@ svg {
 }
 
 :focus-visible {
-	outline: 3px solid color-mix(in srgb, var(--accent) 60%, transparent);
-	outline-offset: 3px;
-	border-radius: 6px;
+	outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
+	outline-offset: 4px;
+	border-radius: 2px;
 }
 
 /* ============================================================
-   按钮（苹果式胶囊）
+   链接：细线下划线，悬停时延伸（取代按钮）
    ============================================================ */
-.btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0.7em 1.4em;
-	border-radius: 980px;
-	font-size: 1.05rem;
-	font-weight: 500;
-	letter-spacing: -0.01em;
-	background: var(--accent);
-	color: #fff;
+.link {
+	position: relative;
+	display: inline-block;
+	padding-bottom: 4px;
+	color: var(--text);
+	font-size: 1rem;
+	letter-spacing: 0.14em;
+}
+.link::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 1px;
+	background: currentColor;
+	opacity: 0.4;
+	transform-origin: left;
 	transition:
-		transform 0.4s var(--ease-out),
-		background 0.3s var(--ease);
+		transform 0.6s var(--ease-out),
+		opacity 0.3s var(--ease);
 }
-.btn:hover {
-	background: var(--accent-hover);
-	color: #fff;
-	text-decoration: none;
-	transform: scale(1.04);
-}
-.btn:active {
-	transform: scale(0.97);
-}
-.btn.ghost {
-	background: transparent;
+.link:hover {
 	color: var(--accent);
-	box-shadow: inset 0 0 0 1.5px var(--accent);
 }
-.btn.ghost:hover {
-	background: var(--accent);
-	color: #fff;
+.link:hover::after {
+	opacity: 1;
+	transform: scaleX(1.08);
 }
 
 /* ============================================================
@@ -184,16 +190,19 @@ svg {
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
 	.reveal {
 		opacity: 0;
-		transform: translateY(48px) scale(0.98);
+		transform: translateY(36px);
+		filter: blur(4px);
 		transition:
-			opacity 1.1s var(--ease),
-			transform 1.1s var(--ease-out);
+			opacity 1.4s var(--ease),
+			transform 1.4s var(--ease-out),
+			filter 1.4s var(--ease);
 		transition-delay: var(--d, 0s);
 		will-change: opacity, transform;
 	}
 	.reveal.in {
 		opacity: 1;
 		transform: none;
+		filter: none;
 	}
 }
 
@@ -215,6 +224,6 @@ svg {
 		font-size: 16px;
 	}
 	.container {
-		width: calc(100% - 32px);
+		width: calc(100% - 40px);
 	}
 }

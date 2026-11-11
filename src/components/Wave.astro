@@ -1,8 +1,8 @@
 ---
-// 一层无限循环流动的海浪。
+// 一层无限循环流动的海浪：柔和的色块 + 一条细细的浪线。
 // 路径由两个完全相同的周期拼成，横向平移 -50% 后正好首尾相接，所以循环无缝。
 interface Props {
-	/** 波浪颜色（CSS 值） */
+	/** 色块颜色（CSS 值） */
 	color: string;
 	/** 横向漂移一周所需秒数，越小越快 */
 	duration?: number;
@@ -15,6 +15,8 @@ interface Props {
 	/** 起伏延迟，用于错开各层 */
 	delay?: string;
 	opacity?: number;
+	/** 是否描一条浪线 */
+	line?: boolean;
 }
 
 const {
@@ -25,7 +27,10 @@ const {
 	height = '180px',
 	delay = '0s',
 	opacity = 1,
+	line = true,
 } = Astro.props;
+
+const crest = 'M0 100C360 40 720 160 1440 100C1800 40 2160 160 2880 100';
 ---
 
 <div
@@ -34,9 +39,18 @@ const {
 	style={`--h:${height};--drift:${duration}s;--bob:${bob}s;--delay:${delay};--dir:${reverse ? 'reverse' : 'normal'};opacity:${opacity}`}
 >
 	<svg viewBox="0 0 2880 200" preserveAspectRatio="none" focusable="false">
-		<path
-			d="M0 100C360 20 720 180 1440 100C1800 20 2160 180 2880 100V200H0Z"
-			fill={color}></path>
+		<path d={`${crest}V200H0Z`} fill={color}></path>
+		{
+			line && (
+				<path
+					d={crest}
+					fill="none"
+					stroke="var(--wave-line)"
+					stroke-width="1.5"
+					vector-effect="non-scaling-stroke"
+				/>
+			)
+		}
 	</svg>
 </div>
 
@@ -70,7 +84,7 @@ const {
 			transform: translateY(0);
 		}
 		50% {
-			transform: translateY(10px);
+			transform: translateY(8px);
 		}
 	}
 </style>

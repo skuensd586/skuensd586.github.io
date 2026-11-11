@@ -1,0 +1,307 @@
+---
+// 桌宠：固定在页面右下角的小狗。不抢戏，但会陪着你。
+// 互动：点击说话/跳一下/冒爱心；连点几次会转圈；一阵子没人理它就打盹。
+import Puppy from './Puppy.astro';
+---
+
+<div class="pet" data-pet>
+	<p class="bubble" data-bubble role="status" aria-live="polite" hidden></p>
+	<button class="body" type="button" data-pet-btn aria-label="和小狗互动">
+		<span class="inner" data-inner><Puppy /></span>
+		<span class="zzz" aria-hidden="true">z<i>z</i><b>z</b></span>
+	</button>
+	<div class="hearts" data-hearts aria-hidden="true"></div>
+</div>
+
+<script>
+	const root = document.querySelector<HTMLElement>('[data-pet]');
+	if (root) {
+		const btn = root.querySelector<HTMLButtonElement>('[data-pet-btn]')!;
+		const inner = root.querySelector<HTMLElement>('[data-inner]')!;
+		const bubble = root.querySelector<HTMLElement>('[data-bubble]')!;
+		const hearts = root.querySelector<HTMLElement>('[data-hearts]')!;
+		const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		const lines = [
+			'汪！',
+			'潮水今天很温柔。',
+			'读到好句子了吗？',
+			'摸摸头～',
+			'晚一点，一起去海边吧。',
+			'嘘，我在听海。',
+			'慢慢来，不着急。',
+			'今天的云，像一封没写完的信。',
+		];
+		const wake = ['唔……醒啦。', '刚才梦到海了。', '汪？'];
+		const dizzy = ['转晕了转晕了……', '哇，别转啦！'];
+
+		let hideTimer: number | undefined;
+		let sleepTimer: number | undefined;
+		let clicks: number[] = [];
+		let last = -1;
+
+		const say = (text: string, ms = 2600) => {
+			bubble.textContent = text;
+			bubble.hidden = false;
+			bubble.classList.remove('show');
+			void bubble.offsetWidth; // 重新触发动画
+			bubble.classList.add('show');
+			window.clearTimeout(hideTimer);
+			hideTimer = window.setTimeout(() => {
+				bubble.classList.remove('show');
+				window.setTimeout(() => (bubble.hidden = true), 400);
+			}, ms);
+		};
+
+		const play = (cls: string, ms: number) => {
+			if (reduce) return;
+			inner.classList.remove('hop', 'spin');
+			void inner.offsetWidth;
+			inner.classList.add(cls);
+			window.setTimeout(() => inner.classList.remove(cls), ms);
+		};
+
+		const heart = () => {
+			if (reduce) return;
+			const h = document.createElement('span');
+			h.textContent = '♥';
+			h.style.setProperty('--x', `${(Math.random() * 36 - 18).toFixed(0)}px`);
+			hearts.append(h);
+			window.setTimeout(() => h.remove(), 1400);
+		};
+
+		const resetSleep = () => {
+			window.clearTimeout(sleepTimer);
+			sleepTimer = window.setTimeout(() => {
+				root.classList.add('sleep');
+				say('Zzz……', 3000);
+			}, 30_000);
+		};
+
+		btn.addEventListener('click', () => {
+			const now = Date.now();
+			clicks = [...clicks.filter((t) => now - t < 3000), now];
+
+			if (root.classList.contains('sleep')) {
+				root.classList.remove('sleep');
+				say(wake[Math.floor(Math.random() * wake.length)]);
+				play('hop', 700);
+			} else if (clicks.length >= 5) {
+				clicks = [];
+				play('spin', 900);
+				say(dizzy[Math.floor(Math.random() * dizzy.length)]);
+			} else {
+				let i: number;
+				do i = Math.floor(Math.random() * lines.length);
+				while (i === last);
+				last = i;
+				say(lines[i]);
+				play('hop', 700);
+				for (let n = 0; n < 2 + (i % 2); n++) window.setTimeout(heart, n * 180);
+			}
+			resetSleep();
+		});
+
+		resetSleep();
+	}
+</script>
+
+<style>
+	.pet {
+		position: fixed;
+		right: clamp(10px, 2.4vw, 28px);
+		bottom: clamp(8px, 2vw, 22px);
+		z-index: 90;
+		width: clamp(64px, 7vw, 84px);
+	}
+	.body {
+		position: relative;
+		display: block;
+		width: 100%;
+		padding: 0;
+		border: 0;
+		background: none;
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+	}
+	.inner {
+		display: block;
+		transform-origin: 50% 100%;
+		transition: transform 0.5s var(--ease-out);
+	}
+	.body:hover .inner {
+		transform: translateY(-3px) rotate(-3deg);
+	}
+	.body:active .inner {
+		transform: scale(0.94);
+	}
+
+	/* 对话气泡 */
+	.bubble {
+		position: absolute;
+		right: 4px;
+		bottom: calc(100% + 6px);
+		width: max-content;
+		max-width: 220px;
+		margin: 0;
+		padding: 8px 14px;
+		border-radius: 14px;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		box-shadow: var(--shadow);
+		color: var(--text);
+		font-size: 0.85rem;
+		line-height: 1.6;
+		letter-spacing: 0.04em;
+		opacity: 0;
+		transform: translateY(6px) scale(0.96);
+		transform-origin: 90% 100%;
+		transition:
+			opacity 0.35s var(--ease),
+			transform 0.5s var(--ease-out);
+	}
+	.bubble::after {
+		content: '';
+		position: absolute;
+		right: 26px;
+		bottom: -6px;
+		width: 10px;
+		height: 10px;
+		background: var(--surface);
+		border-right: 1px solid var(--line);
+		border-bottom: 1px solid var(--line);
+		transform: rotate(45deg);
+	}
+	.bubble.show {
+		opacity: 1;
+		transform: none;
+	}
+
+	/* 动作 */
+	.inner:global(.hop) {
+		animation: hop 0.7s var(--ease-out);
+	}
+	.inner:global(.spin) {
+		animation: spin 0.9s var(--ease-out);
+	}
+	@keyframes hop {
+		0% {
+			transform: translateY(0) scale(1, 1);
+		}
+		18% {
+			transform: translateY(0) scale(1.08, 0.88);
+		}
+		50% {
+			transform: translateY(-22px) scale(0.94, 1.08);
+		}
+		80% {
+			transform: translateY(0) scale(1.06, 0.92);
+		}
+		100% {
+			transform: translateY(0) scale(1, 1);
+		}
+	}
+	@keyframes spin {
+		0% {
+			transform: rotate(0) translateY(0);
+		}
+		40% {
+			transform: rotate(360deg) translateY(-14px);
+		}
+		100% {
+			transform: rotate(720deg) translateY(0);
+		}
+	}
+
+	/* 爱心 */
+	.hearts {
+		position: absolute;
+		left: 50%;
+		top: 6px;
+		pointer-events: none;
+	}
+	.hearts :global(span) {
+		position: absolute;
+		left: var(--x);
+		color: #d98b8b;
+		font-size: 0.95rem;
+		animation: float-up 1.3s var(--ease-out) forwards;
+	}
+	@keyframes float-up {
+		from {
+			opacity: 0;
+			transform: translateY(0) scale(0.6);
+		}
+		20% {
+			opacity: 1;
+		}
+		to {
+			opacity: 0;
+			transform: translateY(-44px) scale(1.1);
+		}
+	}
+
+	/* 打盹：闭眼、轻微呼吸、冒 Zzz */
+	.pet.sleep :global(.eyes) {
+		animation: none;
+		transform: scaleY(0.08);
+	}
+	.pet.sleep :global(.tongue) {
+		animation: none;
+	}
+	.pet.sleep .inner {
+		animation: breathe 3.6s ease-in-out infinite;
+	}
+	@keyframes breathe {
+		0%,
+		100% {
+			transform: scale(1, 1);
+		}
+		50% {
+			transform: scale(1.02, 0.98);
+		}
+	}
+	.zzz {
+		position: absolute;
+		right: -2px;
+		top: -4px;
+		display: none;
+		font-family: var(--font-sans);
+		font-size: 0.8rem;
+		color: var(--text-2);
+		pointer-events: none;
+	}
+	.pet.sleep .zzz {
+		display: block;
+	}
+	.zzz i,
+	.zzz b {
+		font-style: normal;
+		font-weight: 400;
+		display: inline-block;
+		animation: zzz 2.4s ease-in-out infinite;
+	}
+	.zzz i {
+		animation-delay: 0.4s;
+	}
+	.zzz b {
+		animation-delay: 0.8s;
+	}
+	@keyframes zzz {
+		0%,
+		100% {
+			opacity: 0.25;
+			transform: translateY(2px);
+		}
+		50% {
+			opacity: 1;
+			transform: translateY(-4px);
+		}
+	}
+
+	@media print {
+		.pet {
+			display: none;
+		}
+	}
+</style>
