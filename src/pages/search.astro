@@ -1,0 +1,168 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE_TITLE, url } from '../consts';
+---
+
+<Base title={`搜索 · ${SITE_TITLE}`} description="在文章和想法里搜索。">
+	<main class="container">
+		<header class="page-head">
+			<span class="label">Interrogate　·　询问</span>
+			<h1>搜索</h1>
+		</header>
+
+		<form class="ask" role="search" data-form>
+			<label for="q"><span class="who">你</span> —</label>
+			<input id="q" name="q" type="search" placeholder="想找什么？" autocomplete="off" spellcheck="false" autofocus />
+		</form>
+
+		<p class="status" data-status aria-live="polite"></p>
+		<ol class="results" data-results></ol>
+	</main>
+</Base>
+
+<script is:inline define:vars={{ pagefindUrl: url('pagefind/pagefind.js') }}>
+	// 索引由构建时的 Pagefind 生成（npm run build）。开发模式下没有索引，会给出提示。
+	(() => {
+		const input = document.getElementById('q');
+		const status = document.querySelector('[data-status]');
+		const list = document.querySelector('[data-results]');
+		const form = document.querySelector('[data-form]');
+		let pf = null;
+		let failed = false;
+		let ticket = 0;
+
+		const line = (who, cls, check, text) =>
+			`<span class="who ${cls}">${who}</span> <span class="check">${check}</span> — ${text}`;
+
+		async function load() {
+			if (pf || failed) return pf;
+			try {
+				pf = await import(pagefindUrl);
+				await pf.init?.();
+			} catch {
+				failed = true;
+				status.innerHTML = line('逻辑思维', 'int', '[简单：失败]', '搜索索引还没有生成。它只在正式构建（npm run build）后存在，开发模式下搜不了。');
+			}
+			return pf;
+		}
+
+		async function run(q) {
+			const id = ++ticket;
+			q = q.trim();
+			const u = new URL(location.href);
+			q ? u.searchParams.set('q', q) : u.searchParams.delete('q');
+			history.replaceState(null, '', u);
+			if (!q) {
+				status.textContent = '';
+				list.innerHTML = '';
+				return;
+			}
+			const api = await load();
+			if (!api) return;
+			const res = await api.search(q);
+			const data = await Promise.all(res.results.slice(0, 20).map((r) => r.data()));
+			if (id !== ticket) return; // 已有更新的查询
+			status.innerHTML = data.length
+				? line('博学多闻', 'int', '[中等：成功]', `关于「${q.replace(/[<>&]/g, '')}」，我找到了 ${res.results.length} 处。`)
+				: line('博学多闻', 'int', '[中等：失败]', `关于「${q.replace(/[<>&]/g, '')}」，什么也没想起来。换个词试试。`);
+			list.innerHTML = data
+				.map(
+					(d, i) =>
+						`<li><a href="${d.url}"><span class="n">${i + 1}.</span><div><h3>${d.meta?.title ?? d.url}</h3><p>${d.excerpt}</p></div></a></li>`,
+				)
+				.join('');
+		}
+
+		let t;
+		input.addEventListener('input', () => {
+			clearTimeout(t);
+			t = setTimeout(() => run(input.value), 180);
+		});
+		form.addEventListener('submit', (e) => {
+			e.preventDefault();
+			run(input.value);
+		});
+		const initial = new URLSearchParams(location.search).get('q');
+		if (initial) {
+			input.value = initial;
+			run(initial);
+		}
+	})();
+</script>
+
+<style>
+	main {
+		max-width: 860px;
+		min-height: 70vh;
+		padding-bottom: clamp(64px, 9vw, 120px);
+	}
+	.ask {
+		display: flex;
+		align-items: baseline;
+		gap: 14px;
+		padding: 16px 0;
+		border-block: 1px solid var(--line-2);
+		font-size: 1.3rem;
+	}
+	.ask label {
+		flex: none;
+	}
+	input {
+		flex: 1;
+		min-width: 0;
+		padding: 4px 0;
+		border: 0;
+		outline: 0;
+		background: none;
+		color: var(--orange-hi);
+		font: inherit;
+		letter-spacing: 0.04em;
+		caret-color: var(--orange);
+	}
+	input::placeholder {
+		color: var(--ink-3);
+	}
+	input::-webkit-search-cancel-button {
+		filter: invert(0.7);
+	}
+	.status {
+		margin: 1.6em 0 1em;
+		min-height: 1.9em;
+	}
+	.results {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.results :global(a) {
+		display: grid;
+		grid-template-columns: 2.2em 1fr;
+		padding: 18px 0;
+		border-bottom: 1px solid var(--line);
+		color: var(--ink);
+	}
+	.results :global(.n) {
+		font-family: var(--font-display);
+		color: var(--orange);
+		padding-top: 0.2em;
+	}
+	.results :global(h3) {
+		font-size: 1.2rem;
+		color: var(--orange);
+		transition: color 0.2s;
+	}
+	.results :global(a:hover h3) {
+		color: var(--orange-hi);
+	}
+	.results :global(p) {
+		margin: 0.3em 0 0;
+		color: var(--ink-2);
+		font-size: 0.93rem;
+		line-height: 1.8;
+	}
+	.results :global(mark) {
+		background: none;
+		color: var(--mot);
+		border-bottom: 1px solid var(--mot);
+	}
+</style>

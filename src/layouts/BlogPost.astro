@@ -1,26 +1,41 @@
 ---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
+import Comments from '../components/Comments.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Base from './Base.astro';
 import { SITE_TITLE, url } from '../consts';
 
-type Props = Partial<CollectionEntry<'blog'>['data']> &
-	Pick<CollectionEntry<'blog'>['data'], 'title' | 'description' | 'pubDate'>;
+type Link = { title: string; href: string } | null;
+type Props = CollectionEntry<'blog'>['data'] & {
+	minutes?: number;
+	headings?: MarkdownHeading[];
+	prev?: Link;
+	next?: Link;
+};
 
-const { title, description, pubDate, updatedDate, heroImage, tags = [] } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags = [], minutes, headings = [], prev = null, next = null } = Astro.props;
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+// 用阅读时长决定「检定难度」
+const difficulty = !minutes ? '' : minutes <= 3 ? '简单' : minutes <= 8 ? '中等' : minutes <= 15 ? '困难' : '传奇';
 ---
 
 <Base title={`${title} · ${SITE_TITLE}`} description={description} image={heroImage}>
 	<main>
 		<article>
 			<header class="head container">
-				<p class="date reveal">
-					<FormattedDate date={pubDate} />
-					{updatedDate && <span>· 更新于 <FormattedDate date={updatedDate} /></span>}
+				<p class="label reveal">
+					Journal Entry　·　<FormattedDate date={pubDate} />
+					{updatedDate && <span>　·　更新于 <FormattedDate date={updatedDate} /></span>}
 				</p>
 				<h1 class="reveal" style="--d:.08s">{title}</h1>
 				<p class="desc reveal" style="--d:.16s">{description}</p>
+				<p class="meta reveal" style="--d:.24s">
+					{minutes && <span class="check">[{difficulty}：约 {minutes} 分钟读完]</span>}
+					{tags.map((t) => <a class="tag" href={url(`tags/${encodeURIComponent(t)}/`)}>#{t}</a>)}
+				</p>
 			</header>
 
 			{
@@ -31,120 +46,178 @@ const { title, description, pubDate, updatedDate, heroImage, tags = [] } = Astro
 				)
 			}
 
-			<div class="prose container"><slot /></div>
-
-			<footer class="foot container">
-				{
-					tags.length > 0 && (
-						<ul class="tags">
-							{tags.map((t) => (
-								<li>{t}</li>
+			{
+				toc.length >= 3 && (
+					<details class="toc container">
+						<summary class="label">Contents　·　目录</summary>
+						<ol>
+							{toc.map((h) => (
+								<li class={`d${h.depth}`}>
+									<a href={`#${h.slug}`}>{h.text}</a>
+								</li>
 							))}
-						</ul>
-					)
-				}
-				<a href={url('blog/')}>‹ 返回文章列表</a>
-			</footer>
+						</ol>
+					</details>
+				)
+			}
+
+			<div class="prose container" data-pagefind-body><slot /></div>
+
+			<nav class="foot container" aria-label="继续阅读">
+				{prev && <a class="opt" href={prev.href}><span class="n">1.</span>— 上一篇：{prev.title}</a>}
+				{next && <a class="opt" href={next.href}><span class="n">{prev ? 2 : 1}.</span>— 下一篇：{next.title}</a>}
+				<a class="opt" href={url('blog/')}><span class="n">{[prev, next].filter(Boolean).length + 1}.</span>— 回到文章列表。[离开]</a>
+			</nav>
 		</article>
+		<Comments />
 	</main>
 </Base>
 
 <style>
 	.head {
 		max-width: 760px;
-		padding-block: clamp(48px, 9vw, 112px) clamp(24px, 4vw, 48px);
-		text-align: center;
+		padding-block: clamp(56px, 9vw, 112px) clamp(24px, 4vw, 40px);
 	}
-	.date {
-		margin: 0 0 1.6em;
-		font-family: var(--font-sans);
-		font-size: 0.8rem;
-		letter-spacing: 0.22em;
-		color: var(--text-2);
+	.head .label {
+		margin: 0 0 1.4em;
+		color: var(--orange);
 	}
 	h1 {
-		font-size: clamp(2rem, 5.4vw, 3.2rem);
-		font-weight: 400;
-		line-height: 1.5;
-		letter-spacing: 0.12em;
+		font-size: clamp(2.1rem, 5.6vw, 3.5rem);
+		font-weight: 900;
+		line-height: 1.25;
 	}
 	.desc {
+		margin: 1.1em 0 0;
+		font-size: clamp(1.02rem, 2vw, 1.2rem);
+		color: var(--ink-2);
+	}
+	.meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 6px 18px;
 		margin: 1.4em 0 0;
-		font-size: clamp(1rem, 2vw, 1.2rem);
-		letter-spacing: 0.14em;
-		color: var(--text-2);
+		padding-top: 1.1em;
+		border-top: 1px solid var(--line);
+	}
+	.tag {
+		font-family: var(--font-display);
+		font-size: 0.88rem;
+		letter-spacing: 0.08em;
 	}
 	.hero {
 		max-width: 1000px;
-		margin-bottom: clamp(24px, 5vw, 56px);
+		margin-bottom: clamp(24px, 5vw, 48px);
 	}
 	.hero :global(img) {
 		display: block;
 		width: 100%;
 		height: auto;
-		border-radius: 2px;
+		border: 1px solid var(--line-2);
 		box-shadow: var(--shadow);
 	}
 
-	/* ---------- 正文排版 ---------- */
+	.toc {
+		max-width: 760px;
+		margin-bottom: 2em;
+		padding: 14px 20px;
+		background: var(--panel);
+		border: 1px solid var(--line);
+	}
+	.toc summary {
+		cursor: pointer;
+		color: var(--ink-2);
+	}
+	.toc ol {
+		list-style: none;
+		margin: 0.8em 0 0.2em;
+		padding: 0;
+		font-size: 0.95rem;
+	}
+	.toc .d3 {
+		padding-left: 1.4em;
+	}
+	.toc a {
+		display: block;
+		padding: 0.15em 0;
+	}
+
+	/* ---------- 正文 ---------- */
 	.prose {
-		max-width: 680px;
-		font-size: 1.1rem;
-		line-height: 2.05;
-		letter-spacing: 0.03em;
+		max-width: 760px;
+		font-size: 1.08rem;
+		line-height: 2.02;
 	}
 	.prose :global(h2) {
-		margin: 2.2em 0 0.6em;
-		font-size: 1.9rem;
+		margin: 2.4em 0 0.7em;
+		padding-left: 0.7em;
+		border-left: 4px solid var(--orange);
+		font-size: 1.65rem;
+		font-weight: 900;
+		scroll-margin-top: calc(var(--nav-h) + 16px);
 	}
 	.prose :global(h3) {
-		margin: 1.8em 0 0.5em;
-		font-size: 1.4rem;
+		margin: 1.9em 0 0.5em;
+		font-size: 1.25rem;
+		color: var(--ochre);
+		scroll-margin-top: calc(var(--nav-h) + 16px);
 	}
 	.prose :global(p),
 	.prose :global(ul),
 	.prose :global(ol) {
-		margin: 0 0 1.4em;
+		margin: 0 0 1.35em;
 	}
 	.prose :global(li) {
 		margin: 0.3em 0;
 	}
+	.prose :global(li::marker) {
+		color: var(--orange);
+		font-family: var(--font-display);
+	}
+	.prose :global(a) {
+		border-bottom: 1px solid color-mix(in srgb, var(--orange) 50%, transparent);
+	}
+	.prose :global(strong) {
+		color: #f3ecd8;
+	}
 	.prose :global(img) {
 		display: block;
 		margin: 2em auto;
-		border-radius: 20px;
+		border: 1px solid var(--line-2);
 		box-shadow: var(--shadow);
 	}
+	/* 引用 = 脑内的声音 */
 	.prose :global(blockquote) {
 		margin: 1.8em 0;
-		padding: 0.2em 0 0.2em 1.2em;
-		border-left: 3px solid var(--sea-2);
-		color: var(--text-2);
-		font-size: 1.15em;
+		padding: 0.9em 1.3em;
+		background: color-mix(in srgb, var(--psy) 9%, transparent);
+		border-left: 3px solid var(--psy);
+		color: #cfc6e6;
+	}
+	.prose :global(blockquote p:last-child) {
+		margin-bottom: 0;
 	}
 	.prose :global(hr) {
-		margin: 3em 0;
+		margin: 3em auto;
+		width: 120px;
 		border: 0;
-		border-top: 1px solid var(--line);
-	}
-	.prose :global(code) {
-		padding: 0.15em 0.4em;
-		border-radius: 6px;
-		background: var(--bg-alt);
-		font-family: var(--font-mono);
-		font-size: 0.88em;
+		border-top: 2px solid var(--orange);
 	}
 	.prose :global(pre) {
 		margin: 1.8em 0;
-		padding: 1.2em 1.4em;
+		padding: 1.1em 1.3em;
 		overflow-x: auto;
-		border-radius: 18px;
-		font-size: 0.9rem;
-		line-height: 1.65;
+		background: #0a0f0e !important;
+		border: 1px solid var(--line);
+		font-size: 0.88rem;
+		line-height: 1.7;
 	}
 	.prose :global(pre code) {
 		padding: 0;
+		border: 0;
 		background: none;
+		font-size: inherit;
 	}
 	.prose :global(table) {
 		width: 100%;
@@ -152,46 +225,23 @@ const { title, description, pubDate, updatedDate, heroImage, tags = [] } = Astro
 		border-collapse: collapse;
 		font-size: 0.95em;
 	}
-	.prose :global(th),
-	.prose :global(td) {
-		padding: 0.6em 0.8em;
-		border-bottom: 1px solid var(--line);
+	.prose :global(th) {
+		font-family: var(--font-display);
+		font-weight: 500;
+		letter-spacing: 0.12em;
+		color: var(--ink-2);
 		text-align: left;
 	}
-
-	/* Shiki 双主题：随系统明暗切换 */
-	.prose :global(.astro-code),
-	.prose :global(.astro-code span) {
-		color: var(--shiki-light);
-		background-color: var(--shiki-light-bg);
-	}
-	@media (prefers-color-scheme: dark) {
-		.prose :global(.astro-code),
-		.prose :global(.astro-code span) {
-			color: var(--shiki-dark);
-			background-color: var(--shiki-dark-bg);
-		}
+	.prose :global(th),
+	.prose :global(td) {
+		padding: 0.55em 0.8em;
+		border-bottom: 1px solid var(--line);
 	}
 
 	.foot {
-		max-width: 700px;
-		padding-block: 32px clamp(64px, 10vw, 120px);
-		border-top: 1px solid var(--line);
-		margin-top: 3em;
-	}
-	.tags {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-		list-style: none;
-		margin: 0 0 1.4em;
-		padding: 0;
-	}
-	.tags li {
-		padding: 2px 12px;
-		border-radius: 999px;
-		background: var(--bg-alt);
-		color: var(--text-2);
-		font-size: 0.85rem;
+		max-width: 760px;
+		margin-top: 3.2em;
+		padding-block: 18px clamp(48px, 8vw, 96px);
+		border-top: 1px solid var(--line-2);
 	}
 </style>

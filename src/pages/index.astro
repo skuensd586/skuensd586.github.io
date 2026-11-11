@@ -1,343 +1,513 @@
 ---
 import FormattedDate from '../components/FormattedDate.astro';
-import Wave from '../components/Wave.astro';
+import Painting from '../components/Painting.astro';
 import Base from '../layouts/Base.astro';
 import { SITE_DESCRIPTION, SITE_TITLE, url } from '../consts';
-import { getPosts } from '../lib/posts';
+import data from '../data/douban.json';
+import { getPosts, getThoughts } from '../lib/posts';
 
 const posts = (await getPosts()).slice(0, 4);
+const thoughts = (await getThoughts()).slice(0, 3);
+const media = (data.items as { title: string; url: string; cover?: string; type: string; date: string }[])
+	.slice()
+	.sort((a, b) => b.date.localeCompare(a.date))
+	.filter((i) => i.cover)
+	.slice(0, 6);
 
-const index = [
-	{ no: '壹', name: '文章', note: '写下来的话', href: url('blog/') },
-	{ no: '贰', name: '书影音', note: '读过的书，看过的光影', href: url('media/') },
-	{ no: '叁', name: '关于', note: '一份简短的自述', href: url('about/') },
+const options = [
+	{ text: '读他写的文章。', href: url('blog/') },
+	{ text: '打开思维内阁。', href: url('thoughts/') },
+	{ text: '翻看书影音的记录。', href: url('media/') },
+	{ text: '「这个人是谁？」', href: url('about/') },
+	{ text: '搜索点什么。', href: url('search/') },
 ];
 ---
 
 <Base title={SITE_TITLE} description={SITE_DESCRIPTION}>
 	<main>
-		<!-- ========== 首屏：一句话，和远处的海 ========== -->
-		<section class="hero">
-			<div class="disc" aria-hidden="true"></div>
+		<!-- ========== 首屏：左边是世界，右边是对话栏 ========== -->
+		<section class="hero" data-hero>
+			<Painting />
 
-			<div class="hero-text container">
-				<p class="eyebrow label">札记　·　阅读　·　观影</p>
+			<div class="title">
+				<p class="label">A Personal Journal　·　个人札记</p>
 				<h1>
-					<span class="line">海是慢的，</span>
-					<span class="line">字也是。</span>
+					<span>海是慢的，</span>
+					<span>字也是。</span>
 				</h1>
-				<p class="sub">一些写下来的话，和读过、看过的光影。</p>
-				<p class="cta">
-					<a class="link" href={url('blog/')}>读文章</a>
-					<a class="link" href={url('media/')}>看书影音</a>
-				</p>
 			</div>
 
-			<!-- 从远到近：四层雾蓝的海 -->
-			<div class="layer l1" data-parallax="0.05">
-				<Wave color="var(--wave-1)" height="46%" duration={46} bob={9} />
-			</div>
-			<div class="layer l2" data-parallax="0.1">
-				<Wave color="var(--wave-2)" height="36%" duration={38} bob={7.5} reverse delay="-2s" />
-			</div>
-			<div class="layer l3" data-parallax="0.17">
-				<Wave color="var(--wave-3)" height="25%" duration={30} bob={6} delay="-4s" />
-			</div>
-			<div class="layer l4" data-parallax="0.26">
-				<Wave color="var(--wave-4)" height="15%" duration={24} bob={5} reverse delay="-1s" />
-			</div>
+			<aside class="dialogue" aria-label="导览">
+				<div class="log" data-log>
+					<p class="ln" style="--i:0">
+						<span class="who">你</span> — 一个网页。左边是海，右边是字。有人把它们放在了一起。
+					</p>
+					<p class="ln" style="--i:1">
+						<span class="who psy">内陆帝国</span>
+						<span class="check">[中等：成功]</span> — 这片海认得你。它每天把同样的句子推上岸，又原样收回去。
+					</p>
+					<p class="ln" style="--i:2">
+						<span class="who int">逻辑思维</span>
+						<span class="check">[简单：成功]</span> — 这是一个博客。文章，书影音的记录，一份自述。结构很清楚。
+					</p>
+					<p class="ln" style="--i:3">
+						<span class="who psy">通情达理</span>
+						<span class="check">[困难：成功]</span> — 写下这些的人并不着急。你也不必。
+					</p>
+				</div>
+				<nav class="opts" aria-label="入口">
+					{
+						options.map((o, i) => (
+							<a class="opt ln" style={`--i:${i + 4.5}`} href={o.href}>
+								<span class="n">{i + 1}.</span>— {o.text}
+							</a>
+						))
+					}
+				</nav>
+			</aside>
 		</section>
 
-		<!-- ========== 逐词浮现的一段话 ========== -->
-		<section class="statement container">
-			<p data-words>
-				在这里，我写代码，也写日子；读一本书，看一部电影，把它们慢慢留下来。每一篇都不着急，像潮水一样，来了又走，留下一点点光。
+		<!-- ========== 天人感应：随滚动逐词浮现 ========== -->
+		<section class="shivers container">
+			<p class="src reveal">
+				<span class="who fys">天人感应</span>
+				<span class="check">[传奇：成功]</span>
+			</p>
+			<p class="passage" data-words>
+				风从海湾那边吹过来，穿过晾衣绳、天线和没关严的窗。它带着盐，也带着别人家晚饭的味道。城市在很低的地方说话——不是对你，但你听见了。把它记下来。不为了什么，只是因为它发生过。
 			</p>
 		</section>
 
-		<!-- ========== 目录 ========== -->
-		<section class="toc container" aria-label="目录">
-			<p class="label reveal">目　录</p>
-			<ol>
-				{
-					index.map((it, i) => (
-						<li class="reveal" style={`--d:${i * 0.1}s`}>
-							<a href={it.href}>
-								<span class="no">{it.no}</span>
-								<span class="name">{it.name}</span>
-								<span class="note">{it.note}</span>
-								<span class="arrow" aria-hidden="true">→</span>
-							</a>
-						</li>
-					))
-				}
-			</ol>
-		</section>
-
-		<!-- ========== 近作 ========== -->
-		<section class="latest container">
-			<p class="label reveal">近　作</p>
-			<ul>
+		<!-- ========== 任务：近作 ========== -->
+		<section class="container block">
+			<div class="section-title reveal">
+				<span class="label">Tasks</span>
+				<h2>近作</h2>
+			</div>
+			<ul class="tasks">
 				{
 					posts.map((post, i) => (
-						<li class="reveal" style={`--d:${i * 0.08}s`}>
+						<li class="reveal" style={`--d:${i * 0.07}s`}>
 							<a href={url(`blog/${post.id}/`)}>
-								<time class="date label">
-									<FormattedDate date={post.data.pubDate} />
-								</time>
+								<span class="box" aria-hidden="true" />
 								<div>
 									<h3>{post.data.title}</h3>
 									<p>{post.data.description}</p>
 								</div>
+								<time class="label">
+									<FormattedDate date={post.data.pubDate} />
+								</time>
 							</a>
 						</li>
 					))
 				}
 			</ul>
 			{posts.length === 0 && <p class="empty">还没有文章。</p>}
-			<p class="all reveal"><a class="link" href={url('blog/')}>全部文章</a></p>
+			<p class="more reveal"><a class="opt" href={url('blog/')}><span class="n">→</span>全部文章</a></p>
 		</section>
+
+		<!-- ========== 思维内阁 ========== -->
+		{
+			thoughts.length > 0 && (
+				<section class="container block">
+					<div class="section-title reveal">
+						<span class="label">Thought Cabinet</span>
+						<h2>思维内阁</h2>
+					</div>
+					<ul class="orbs">
+						{thoughts.map((t, i) => (
+							<li class="reveal" style={`--d:${i * 0.09}s`}>
+								<a class={`orb ${t.data.attr}`} href={url(`thoughts/#${t.id}`)}>
+									<span class="ball" aria-hidden="true" />
+									<span class="label">{t.data.status === 'internalized' ? '已内化' : '研究中'}</span>
+									<h3>{t.data.title}</h3>
+								</a>
+							</li>
+						))}
+					</ul>
+				</section>
+			)
+		}
+
+		<!-- ========== 物品栏：最近标记 ========== -->
+		{
+			media.length > 0 && (
+				<section class="container block">
+					<div class="section-title reveal">
+						<span class="label">Inventory</span>
+						<h2>最近的书影音</h2>
+					</div>
+					<ul class="shelf">
+						{media.map((m, i) => (
+							<li class="reveal" style={`--d:${i * 0.06}s`}>
+								<a href={url('media/')} title={m.title}>
+									<img src={url(m.cover!)} alt={m.title} loading="lazy" decoding="async" />
+								</a>
+							</li>
+						))}
+					</ul>
+					<p class="more reveal"><a class="opt" href={url('media/')}><span class="n">→</span>全部记录</a></p>
+				</section>
+			)
+		}
 	</main>
 </Base>
+
+<script>
+	// 伊苏林迪竹节虫：只有当访客在首屏静止不动足够久，它才会出现；一动就消失。
+	const hero = document.querySelector<HTMLElement>('[data-hero]');
+	const bug = document.querySelector<SVGGElement>('[data-phasmid]');
+	const log = document.querySelector<HTMLElement>('[data-log]');
+	if (hero && bug && log) {
+		const STILL_MS = 14_000;
+		let timer: number | undefined;
+		let visible = false;
+		let said = { seen: false, gone: false };
+
+		const say = (cls: string, who: string, check: string, text: string) => {
+			const p = document.createElement('p');
+			p.className = 'ln late';
+			p.innerHTML = `<span class="who ${cls}">${who}</span> <span class="check">${check}</span> — ${text}`;
+			log.append(p);
+		};
+
+		const appear = () => {
+			if (window.scrollY > window.innerHeight * 0.4) return arm(); // 首屏不在视野里
+			visible = true;
+			bug.classList.remove('gone');
+			bug.classList.add('seen');
+			if (!said.seen) {
+				said.seen = true;
+				say('mot', '五感发达', '[不可能：成功]', '那丛芦苇里，有一根芦苇不是芦苇。它很高，很白，站得很直。别动。');
+				try {
+					localStorage.setItem('phasmid-seen', '1');
+				} catch {}
+				document.dispatchEvent(new CustomEvent('phasmid-seen'));
+			}
+		};
+		const arm = () => {
+			window.clearTimeout(timer);
+			timer = window.setTimeout(appear, STILL_MS);
+		};
+		const moved = () => {
+			if (visible) {
+				visible = false;
+				bug.classList.add('gone');
+				bug.classList.remove('seen');
+				if (!said.gone) {
+					said.gone = true;
+					say('psy', '内陆帝国', '', '它不见了。也许它一直在那里，只是你动了。');
+				}
+			}
+			arm();
+		};
+		for (const ev of ['mousemove', 'scroll', 'keydown', 'touchstart', 'wheel']) {
+			window.addEventListener(ev, moved, { passive: true });
+		}
+		arm();
+	}
+</script>
 
 <style>
 	/* ---------- 首屏 ---------- */
 	.hero {
 		position: relative;
-		height: calc(100svh - var(--nav-h));
-		min-height: 600px;
-		max-height: 940px;
-		overflow: hidden;
-		background: linear-gradient(180deg, var(--bg) 0%, var(--sky) 100%);
+		min-height: max(640px, calc(100svh - var(--nav-h)));
+		display: grid;
+		grid-template-columns: 1fr min(430px, 38vw);
+		align-items: end;
 		isolation: isolate;
+		overflow: hidden;
+	}
+	.hero :global(.painting) {
+		z-index: -1;
 	}
 
-	/* 一轮淡淡的日／月 */
-	.disc {
-		position: absolute;
-		top: 16%;
-		right: 18%;
-		width: clamp(70px, 10vw, 128px);
-		aspect-ratio: 1;
-		border-radius: 50%;
-		background: var(--sun);
-		opacity: 0.85;
-		animation: breathe 9s ease-in-out infinite;
+	.title {
+		padding: 0 0 clamp(90px, 13vh, 150px) clamp(24px, 6vw, 96px);
 	}
-	@keyframes breathe {
-		0%,
-		100% {
-			transform: scale(1);
-			opacity: 0.8;
-		}
-		50% {
-			transform: scale(1.05);
-			opacity: 1;
-		}
-	}
-
-	.hero-text {
-		position: relative;
-		z-index: 5;
-		padding-top: clamp(48px, 11vh, 120px);
-		text-align: center;
-	}
-	.eyebrow {
-		margin: 0 0 2.2em;
-		animation: rise 1.6s var(--ease-out) both;
+	.title .label {
+		margin: 0 0 1.2em;
+		color: #f4e7c8;
+		text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+		animation: rise 1.4s var(--ease-out) 0.2s both;
 	}
 	h1 {
-		font-size: clamp(2.4rem, 7.2vw, 5rem);
-		font-weight: 400;
-		line-height: 1.5;
-		letter-spacing: 0.14em;
+		font-size: clamp(2.6rem, 6.6vw, 5.6rem);
+		font-weight: 900;
+		line-height: 1.22;
+		letter-spacing: 0.06em;
+		color: #f6efdc;
+		text-shadow:
+			0 2px 0 rgba(10, 16, 15, 0.55),
+			0 10px 40px rgba(6, 12, 12, 0.7);
 	}
-	.line {
+	h1 span {
 		display: block;
-		animation: rise 1.8s var(--ease-out) both;
+		animation: rise 1.5s var(--ease-out) both;
 	}
-	.line:nth-child(1) {
-		animation-delay: 0.15s;
+	h1 span:nth-child(1) {
+		animation-delay: 0.35s;
 	}
-	.line:nth-child(2) {
-		animation-delay: 0.4s;
-	}
-	.sub {
-		margin: 2em 0 0;
-		color: var(--text-2);
-		font-size: clamp(0.95rem, 1.8vw, 1.15rem);
-		letter-spacing: 0.2em;
-		animation: rise 1.8s var(--ease-out) 0.7s both;
-	}
-	.cta {
-		display: flex;
-		justify-content: center;
-		flex-wrap: wrap;
-		gap: 12px 40px;
-		margin: 2.4em 0 0;
-		animation: rise 1.8s var(--ease-out) 0.95s both;
+	h1 span:nth-child(2) {
+		animation-delay: 0.6s;
+		transform-origin: left;
 	}
 	@keyframes rise {
 		from {
 			opacity: 0;
-			transform: translateY(24px);
-			filter: blur(6px);
+			transform: translateY(26px);
 		}
 		to {
 			opacity: 1;
 			transform: none;
-			filter: none;
 		}
 	}
 
-	/* 图层：外层负责滚动视差，内层各自起伏漂移 */
-	.layer {
-		position: absolute;
-		inset: 0;
-		transform: translate3d(0, var(--py, 0px), 0);
-		pointer-events: none;
+	/* 对话栏：贴在右侧，从上到下一条条出现 */
+	.dialogue {
+		align-self: stretch;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		gap: 18px;
+		padding: 40px clamp(20px, 2.6vw, 36px) clamp(40px, 8vh, 80px);
+		background: linear-gradient(180deg, rgba(14, 20, 19, 0.5) 0%, rgba(14, 20, 19, 0.9) 34%, rgba(14, 20, 19, 0.97) 100%);
+		border-left: 1px solid var(--line);
+		-webkit-backdrop-filter: blur(6px);
+		backdrop-filter: blur(6px);
+		font-size: 0.98rem;
+		line-height: 1.8;
 	}
-	.l1 {
-		z-index: 1;
+	.log p {
+		margin: 0 0 0.9em;
 	}
-	.l2 {
-		z-index: 2;
+	.ln {
+		animation: line-in 0.9s var(--ease-out) both;
+		animation-delay: calc(0.7s + var(--i) * 0.32s);
 	}
-	.l3 {
-		z-index: 3;
+	.log :global(.late) {
+		margin: 0 0 0.9em;
+		animation: line-in 1.2s var(--ease-out) both;
 	}
-	.l4 {
-		z-index: 4;
+	@keyframes line-in {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+	.opts {
+		padding-top: 14px;
+		border-top: 1px solid var(--line-2);
 	}
 
-	/* ---------- 一段话 ---------- */
-	.statement {
-		max-width: 800px;
-		padding: clamp(96px, 16vw, 200px) 0;
+	/* ---------- 天人感应 ---------- */
+	.shivers {
+		max-width: 860px;
+		padding-block: clamp(90px, 14vw, 180px);
 	}
-	.statement p {
+	.src {
+		margin: 0 0 1.2em;
+	}
+	.passage {
 		margin: 0;
-		font-size: clamp(1.4rem, 3.6vw, 2.2rem);
-		font-weight: 400;
-		line-height: 2;
-		letter-spacing: 0.1em;
+		font-size: clamp(1.35rem, 3.2vw, 2.05rem);
+		line-height: 1.95;
+		letter-spacing: 0.06em;
 	}
-	.statement :global(.w) {
+	.shivers :global(.w) {
 		transition: opacity 0.7s var(--ease);
 	}
-	.statement :global(.words-ready .w) {
-		opacity: 0.16;
+	.shivers :global(.words-ready .w) {
+		opacity: 0.14;
 	}
-	.statement :global(.words-ready .w.on) {
+	.shivers :global(.words-ready .w.on) {
 		opacity: 1;
 	}
 
-	/* ---------- 目录 ---------- */
-	.toc,
-	.latest {
-		max-width: 800px;
+	/* ---------- 通用分节 ---------- */
+	.block {
+		max-width: 920px;
+		padding-bottom: clamp(72px, 10vw, 130px);
 	}
-	.toc {
-		padding-bottom: clamp(72px, 12vw, 140px);
+	.section-title .label {
+		color: var(--orange);
 	}
-	.toc ol,
-	.latest ul {
-		list-style: none;
-		margin: 0.6em 0 0;
-		padding: 0;
-	}
-	.toc li a {
-		display: grid;
-		grid-template-columns: 3.2em 8em 1fr auto;
-		align-items: baseline;
-		gap: 8px;
-		padding: 26px 0;
-		border-top: 1px solid var(--line);
-		color: var(--text);
-		transition: padding-left 0.6s var(--ease-out);
-	}
-	.toc li:last-child a {
-		border-bottom: 1px solid var(--line);
-	}
-	.toc li a:hover {
-		padding-left: 14px;
-		color: var(--accent);
-	}
-	.no {
-		color: var(--text-2);
-		font-size: 0.95rem;
-	}
-	.name {
-		font-size: 1.5rem;
-		letter-spacing: 0.2em;
-	}
-	.note {
-		color: var(--text-2);
-		font-size: 0.92rem;
-	}
-	.arrow {
-		opacity: 0;
-		transform: translateX(-8px);
-		transition:
-			opacity 0.4s var(--ease),
-			transform 0.6s var(--ease-out);
-	}
-	.toc li a:hover .arrow {
-		opacity: 1;
-		transform: none;
-	}
-
-	/* ---------- 近作 ---------- */
-	.latest {
-		padding-bottom: clamp(80px, 12vw, 150px);
-	}
-	.latest li a {
-		display: grid;
-		grid-template-columns: 9.5em 1fr;
-		gap: 12px 24px;
-		padding: 30px 0;
-		border-top: 1px solid var(--line);
-		color: var(--text);
-	}
-	.latest li:last-child a {
-		border-bottom: 1px solid var(--line);
-	}
-	.latest li a:hover h3 {
-		color: var(--accent);
-	}
-	.latest .date {
-		padding-top: 0.5em;
-	}
-	.latest h3 {
-		font-size: 1.35rem;
-		transition: color 0.3s var(--ease);
-	}
-	.latest li p {
-		margin: 0.4em 0 0;
-		color: var(--text-2);
-		font-size: 0.95rem;
-	}
-	.all {
-		margin-top: 2em;
-		text-align: right;
+	.more {
+		margin: 1.4em 0 0;
 	}
 	.empty {
-		color: var(--text-2);
+		color: var(--ink-2);
 	}
 
-	@media (max-width: 720px) {
-		.toc li a {
-			grid-template-columns: 2.6em 1fr auto;
-		}
-		.note {
-			display: none;
-		}
-		.latest li a {
+	/* ---------- 任务列表 ---------- */
+	.tasks,
+	.orbs,
+	.shelf {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.tasks a {
+		display: grid;
+		grid-template-columns: 22px 1fr auto;
+		gap: 4px 18px;
+		align-items: start;
+		padding: 22px 0;
+		border-bottom: 1px solid var(--line);
+		color: var(--ink);
+		transition: padding-left 0.5s var(--ease-out);
+	}
+	.tasks li:first-child a {
+		border-top: 1px solid var(--line);
+	}
+	.tasks a:hover {
+		padding-left: 10px;
+	}
+	.tasks a:hover h3 {
+		color: var(--orange-hi);
+	}
+	.box {
+		width: 14px;
+		height: 14px;
+		margin-top: 0.62em;
+		border: 1.5px solid var(--orange);
+		transition: background 0.3s var(--ease);
+	}
+	.tasks a:hover .box {
+		background: var(--orange);
+	}
+	.tasks h3 {
+		font-size: 1.3rem;
+		transition: color 0.2s var(--ease);
+	}
+	.tasks p {
+		margin: 0.3em 0 0;
+		color: var(--ink-2);
+		font-size: 0.94rem;
+	}
+	.tasks time {
+		padding-top: 0.7em;
+	}
+
+	/* ---------- 思维球 ---------- */
+	.orbs {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 18px;
+	}
+	.orb {
+		--c: var(--psy);
+		display: grid;
+		grid-template-columns: 54px 1fr;
+		grid-template-rows: auto auto;
+		column-gap: 16px;
+		align-items: center;
+		padding: 18px 20px;
+		background: var(--panel);
+		border: 1px solid var(--line);
+		color: var(--ink);
+		transition:
+			border-color 0.3s var(--ease),
+			transform 0.5s var(--ease-out);
+	}
+	.orb.int {
+		--c: var(--int);
+	}
+	.orb.fys {
+		--c: var(--fys);
+	}
+	.orb.mot {
+		--c: var(--mot);
+	}
+	.orb:hover {
+		border-color: var(--c);
+		transform: translateY(-4px);
+		color: var(--ink);
+	}
+	.ball {
+		grid-row: 1 / 3;
+		width: 54px;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background:
+			radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.55), transparent 34%),
+			radial-gradient(circle at 60% 70%, color-mix(in srgb, var(--c) 55%, #000) 0%, var(--c) 70%);
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.5),
+			0 0 22px color-mix(in srgb, var(--c) 45%, transparent);
+	}
+	.orb .label {
+		color: var(--c);
+		font-size: 0.72rem;
+	}
+	.orb h3 {
+		font-size: 1.08rem;
+	}
+
+	/* ---------- 封面架 ---------- */
+	.shelf {
+		display: grid;
+		grid-template-columns: repeat(6, 1fr);
+		gap: 14px;
+	}
+	.shelf a {
+		display: block;
+		aspect-ratio: 2 / 3;
+		overflow: hidden;
+		border: 1px solid var(--line-2);
+		background: var(--panel);
+		transition:
+			transform 0.5s var(--ease-out),
+			border-color 0.3s var(--ease);
+	}
+	.shelf a:hover {
+		transform: translateY(-6px) rotate(-1.2deg);
+		border-color: var(--orange);
+	}
+	.shelf img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		filter: saturate(0.82) contrast(1.05);
+	}
+
+	@media (max-width: 860px) {
+		.hero {
 			grid-template-columns: 1fr;
-			gap: 2px;
+			min-height: 0;
 		}
-		.disc {
-			right: 10%;
+		.title {
+			min-height: 62svh;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-end;
+			padding-bottom: 56px;
+		}
+		.dialogue {
+			border-left: 0;
+			border-top: 1px solid var(--line);
+			background: var(--bg);
+			padding-top: 28px;
+		}
+		.hero :global(.painting) {
+			bottom: auto;
+			height: 62svh;
+		}
+		.tasks a {
+			grid-template-columns: 22px 1fr;
+		}
+		.tasks time {
+			grid-column: 2;
+			padding-top: 0;
+		}
+		.shelf {
+			grid-template-columns: repeat(3, 1fr);
 		}
 	}
 </style>

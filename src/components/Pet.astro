@@ -1,16 +1,15 @@
 ---
-// 桌宠：固定在页面右下角的小狗。不抢戏，但会陪着你。
-// 互动：点击说话/跳一下/冒爱心；连点几次会转圈；一阵子没人理它就打盹。
-import Puppy from './Puppy.astro';
+// 桌宠：站在页面右下角的像素小人。
+// 点击：说一句话；连点：他会请你别戳了；久置：掏出笔记本记点什么。
+import Kim from './Kim.astro';
 ---
 
 <div class="pet" data-pet>
 	<p class="bubble" data-bubble role="status" aria-live="polite" hidden></p>
-	<button class="body" type="button" data-pet-btn aria-label="和小狗互动">
-		<span class="inner" data-inner><Puppy /></span>
-		<span class="zzz" aria-hidden="true">z<i>z</i><b>z</b></span>
+	<div class="floats" data-floats aria-hidden="true"></div>
+	<button class="body" type="button" data-pet-btn aria-label="和金说话">
+		<span class="inner" data-inner><Kim /></span>
 	</button>
-	<div class="hearts" data-hearts aria-hidden="true"></div>
 </div>
 
 <script>
@@ -19,29 +18,36 @@ import Puppy from './Puppy.astro';
 		const btn = root.querySelector<HTMLButtonElement>('[data-pet-btn]')!;
 		const inner = root.querySelector<HTMLElement>('[data-inner]')!;
 		const bubble = root.querySelector<HTMLElement>('[data-bubble]')!;
-		const hearts = root.querySelector<HTMLElement>('[data-hearts]')!;
+		const floats = root.querySelector<HTMLElement>('[data-floats]')!;
 		const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 		const lines = [
-			'汪！',
-			'潮水今天很温柔。',
-			'读到好句子了吗？',
-			'摸摸头～',
-			'晚一点，一起去海边吧。',
-			'嘘，我在听海。',
-			'慢慢来，不着急。',
-			'今天的云，像一封没写完的信。',
+			'嗯。',
+			'我在。继续吧。',
+			'这一页你已经看了很久了。',
+			'我记下来了。',
+			'海风有点凉。不过无妨。',
+			'不必着急，我们有的是时间。',
+			'……好的。',
+			'专注。先把眼前这一页看完。',
+			'如果你在找搜索，它在右上角。',
 		];
-		const wake = ['唔……醒啦。', '刚才梦到海了。', '汪？'];
-		const dizzy = ['转晕了转晕了……', '哇，别转啦！'];
+		const poked = ['请不要这样戳我。', '……警探。', '我建议你把手放回口袋里。'];
+		const noting = ['（他翻开笔记本，记了点什么。）', '（他推了推眼镜，继续写。）'];
+		const back = ['（他合上了笔记本。）什么事？', '嗯？我在听。'];
 
 		let hideTimer: number | undefined;
-		let sleepTimer: number | undefined;
+		let idleTimer: number | undefined;
 		let clicks: number[] = [];
 		let last = -1;
+		const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
-		const say = (text: string, ms = 2600) => {
-			bubble.textContent = text;
+		const say = (text: string, ms = 3200) => {
+			bubble.innerHTML = '';
+			const who = document.createElement('span');
+			who.className = 'who';
+			who.textContent = '金';
+			bubble.append(who, ` — ${text}`);
 			bubble.hidden = false;
 			bubble.classList.remove('show');
 			void bubble.offsetWidth; // 重新触发动画
@@ -49,73 +55,70 @@ import Puppy from './Puppy.astro';
 			window.clearTimeout(hideTimer);
 			hideTimer = window.setTimeout(() => {
 				bubble.classList.remove('show');
-				window.setTimeout(() => (bubble.hidden = true), 400);
+				window.setTimeout(() => (bubble.hidden = true), 300);
 			}, ms);
 		};
 
-		const play = (cls: string, ms: number) => {
+		const nod = () => {
 			if (reduce) return;
-			inner.classList.remove('hop', 'spin');
+			inner.classList.remove('nod');
 			void inner.offsetWidth;
-			inner.classList.add(cls);
-			window.setTimeout(() => inner.classList.remove(cls), ms);
+			inner.classList.add('nod');
 		};
 
-		const heart = () => {
+		const float = (text: string, cls: string) => {
 			if (reduce) return;
-			const h = document.createElement('span');
-			h.textContent = '♥';
-			h.style.setProperty('--x', `${(Math.random() * 36 - 18).toFixed(0)}px`);
-			hearts.append(h);
-			window.setTimeout(() => h.remove(), 1400);
+			const s = document.createElement('span');
+			s.className = cls;
+			s.textContent = text;
+			floats.append(s);
+			window.setTimeout(() => s.remove(), 1700);
 		};
 
-		const resetSleep = () => {
-			window.clearTimeout(sleepTimer);
-			sleepTimer = window.setTimeout(() => {
-				root.classList.add('sleep');
-				say('Zzz……', 3000);
-			}, 30_000);
+		const resetIdle = () => {
+			window.clearTimeout(idleTimer);
+			idleTimer = window.setTimeout(() => {
+				root.classList.add('noting');
+				say(pick(noting), 3600);
+			}, 40_000);
 		};
 
 		btn.addEventListener('click', () => {
 			const now = Date.now();
 			clicks = [...clicks.filter((t) => now - t < 3000), now];
 
-			if (root.classList.contains('sleep')) {
-				root.classList.remove('sleep');
-				say(wake[Math.floor(Math.random() * wake.length)]);
-				play('hop', 700);
+			if (root.classList.contains('noting')) {
+				root.classList.remove('noting');
+				say(pick(back));
 			} else if (clicks.length >= 5) {
 				clicks = [];
-				play('spin', 900);
-				say(dizzy[Math.floor(Math.random() * dizzy.length)]);
+				say(pick(poked));
+				float('−1 士气', 'bad');
 			} else {
 				let i: number;
 				do i = Math.floor(Math.random() * lines.length);
 				while (i === last);
 				last = i;
 				say(lines[i]);
-				play('hop', 700);
-				for (let n = 0; n < 2 + (i % 2); n++) window.setTimeout(heart, n * 180);
+				if (Math.random() < 0.4) float('+1 士气', 'good');
 			}
-			resetSleep();
+			nod();
+			resetIdle();
 		});
 
-		resetSleep();
+		resetIdle();
 	}
 </script>
 
 <style>
 	.pet {
 		position: fixed;
-		right: clamp(10px, 2.4vw, 28px);
-		bottom: clamp(8px, 2vw, 22px);
+		right: clamp(10px, 2.2vw, 26px);
+		bottom: clamp(8px, 1.8vw, 20px);
 		z-index: 90;
-		width: clamp(64px, 7vw, 84px);
+		width: clamp(48px, 5vw, 62px);
 	}
 	.body {
-		position: relative;
 		display: block;
 		width: 100%;
 		padding: 0;
@@ -127,175 +130,97 @@ import Puppy from './Puppy.astro';
 	.inner {
 		display: block;
 		transform-origin: 50% 100%;
-		transition: transform 0.5s var(--ease-out);
+		animation: idle 3.4s steps(2) infinite;
 	}
-	.body:hover .inner {
-		transform: translateY(-3px) rotate(-3deg);
+	/* 像素风的呼吸：整像素地上下一格 */
+	@keyframes idle {
+		50% {
+			transform: translateY(-2px);
+		}
 	}
-	.body:active .inner {
-		transform: scale(0.94);
+	.inner:global(.nod) {
+		animation: nod 0.5s steps(4);
+	}
+	@keyframes nod {
+		0% {
+			transform: translateY(0);
+		}
+		40% {
+			transform: translateY(4px) scaleY(0.96);
+		}
+		100% {
+			transform: translateY(0);
+		}
+	}
+	.pet.noting :global(.notebook) {
+		display: block;
 	}
 
-	/* 对话气泡 */
+	/* 对话气泡：就是一行对话记录 */
 	.bubble {
 		position: absolute;
-		right: 4px;
-		bottom: calc(100% + 6px);
+		right: 0;
+		bottom: calc(100% + 12px);
 		width: max-content;
-		max-width: 220px;
+		max-width: min(280px, 72vw);
 		margin: 0;
-		padding: 8px 14px;
-		border-radius: 14px;
-		background: var(--surface);
-		border: 1px solid var(--line);
+		padding: 10px 14px 11px;
+		background: var(--panel-2);
+		border: 1px solid var(--line-2);
+		border-left: 3px solid var(--orange);
 		box-shadow: var(--shadow);
-		color: var(--text);
-		font-size: 0.85rem;
-		line-height: 1.6;
-		letter-spacing: 0.04em;
+		color: var(--ink);
+		font-size: 0.86rem;
+		line-height: 1.7;
 		opacity: 0;
-		transform: translateY(6px) scale(0.96);
-		transform-origin: 90% 100%;
+		transform: translateY(6px);
 		transition:
-			opacity 0.35s var(--ease),
-			transform 0.5s var(--ease-out);
-	}
-	.bubble::after {
-		content: '';
-		position: absolute;
-		right: 26px;
-		bottom: -6px;
-		width: 10px;
-		height: 10px;
-		background: var(--surface);
-		border-right: 1px solid var(--line);
-		border-bottom: 1px solid var(--line);
-		transform: rotate(45deg);
+			opacity 0.25s var(--ease),
+			transform 0.4s var(--ease-out);
 	}
 	.bubble.show {
 		opacity: 1;
 		transform: none;
 	}
-
-	/* 动作 */
-	.inner:global(.hop) {
-		animation: hop 0.7s var(--ease-out);
-	}
-	.inner:global(.spin) {
-		animation: spin 0.9s var(--ease-out);
-	}
-	@keyframes hop {
-		0% {
-			transform: translateY(0) scale(1, 1);
-		}
-		18% {
-			transform: translateY(0) scale(1.08, 0.88);
-		}
-		50% {
-			transform: translateY(-22px) scale(0.94, 1.08);
-		}
-		80% {
-			transform: translateY(0) scale(1.06, 0.92);
-		}
-		100% {
-			transform: translateY(0) scale(1, 1);
-		}
-	}
-	@keyframes spin {
-		0% {
-			transform: rotate(0) translateY(0);
-		}
-		40% {
-			transform: rotate(360deg) translateY(-14px);
-		}
-		100% {
-			transform: rotate(720deg) translateY(0);
-		}
+	.bubble :global(.who) {
+		color: var(--ochre);
 	}
 
-	/* 爱心 */
-	.hearts {
+	/* 飘字：士气加减 */
+	.floats {
 		position: absolute;
 		left: 50%;
-		top: 6px;
+		top: -4px;
 		pointer-events: none;
 	}
-	.hearts :global(span) {
+	.floats :global(span) {
 		position: absolute;
-		left: var(--x);
-		color: #d98b8b;
-		font-size: 0.95rem;
-		animation: float-up 1.3s var(--ease-out) forwards;
+		left: 0;
+		transform: translateX(-50%);
+		white-space: nowrap;
+		font-family: var(--font-display);
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		animation: float-up 1.6s var(--ease-out) forwards;
+	}
+	.floats :global(.good) {
+		color: var(--psy);
+	}
+	.floats :global(.bad) {
+		color: var(--fys);
 	}
 	@keyframes float-up {
 		from {
 			opacity: 0;
-			transform: translateY(0) scale(0.6);
+			transform: translate(-50%, 0);
 		}
-		20% {
+		15% {
 			opacity: 1;
 		}
 		to {
 			opacity: 0;
-			transform: translateY(-44px) scale(1.1);
-		}
-	}
-
-	/* 打盹：闭眼、轻微呼吸、冒 Zzz */
-	.pet.sleep :global(.eyes) {
-		animation: none;
-		transform: scaleY(0.08);
-	}
-	.pet.sleep :global(.tongue) {
-		animation: none;
-	}
-	.pet.sleep .inner {
-		animation: breathe 3.6s ease-in-out infinite;
-	}
-	@keyframes breathe {
-		0%,
-		100% {
-			transform: scale(1, 1);
-		}
-		50% {
-			transform: scale(1.02, 0.98);
-		}
-	}
-	.zzz {
-		position: absolute;
-		right: -2px;
-		top: -4px;
-		display: none;
-		font-family: var(--font-sans);
-		font-size: 0.8rem;
-		color: var(--text-2);
-		pointer-events: none;
-	}
-	.pet.sleep .zzz {
-		display: block;
-	}
-	.zzz i,
-	.zzz b {
-		font-style: normal;
-		font-weight: 400;
-		display: inline-block;
-		animation: zzz 2.4s ease-in-out infinite;
-	}
-	.zzz i {
-		animation-delay: 0.4s;
-	}
-	.zzz b {
-		animation-delay: 0.8s;
-	}
-	@keyframes zzz {
-		0%,
-		100% {
-			opacity: 0.25;
-			transform: translateY(2px);
-		}
-		50% {
-			opacity: 1;
-			transform: translateY(-4px);
+			transform: translate(-50%, -46px);
 		}
 	}
 

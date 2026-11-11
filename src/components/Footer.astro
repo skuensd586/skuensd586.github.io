@@ -1,50 +1,58 @@
 ---
-import { SITE_TITLE, url } from '../consts';
+import { NAV, SITE_TITLE, url } from '../consts';
 
 const year = new Date().getFullYear();
 ---
 
 <footer>
 	<div class="container">
-		<svg class="rule" viewBox="0 0 120 12" aria-hidden="true">
-			<path d="M0 6C10 0 20 12 30 6S50 0 60 6S80 12 90 6S110 0 120 6" fill="none" stroke="currentColor" stroke-width="1"></path>
-		</svg>
 		<p class="links label">
-			<a href={url('blog/')}>文章</a>
-			<a href={url('media/')}>书影音</a>
-			<a href={url('about/')}>关于</a>
-			<a href={url('rss.xml')}>订阅</a>
+			{NAV.map((n) => <a href={url(n.path)}>{n.name}</a>)}
+			<a href={url('tags/')}>标签</a>
+			<a href={url('search/')}>搜索</a>
+			<a href={url('rss.xml')}>RSS</a>
 		</p>
-		<p class="copy label">© {year} {SITE_TITLE}</p>
+		<!-- 见过竹节虫的访客才会看到这一行 -->
+		<p class="crypto label" data-crypto hidden>✓ 神秘动物学：你见过伊苏林迪竹节虫</p>
+		<p class="copy">© {year} {SITE_TITLE}　·　界面风格致敬《极乐迪斯科》，画面为本站原创绘制，未使用游戏素材。</p>
 	</div>
 </footer>
 
+<script>
+	const el = document.querySelector<HTMLElement>('[data-crypto]');
+	const show = () => el && (el.hidden = false);
+	try {
+		if (localStorage.getItem('phasmid-seen')) show();
+	} catch {}
+	document.addEventListener('phasmid-seen', show);
+</script>
+
 <style>
 	footer {
-		padding: 64px 0 88px;
-		text-align: center;
-		color: var(--text-2);
-	}
-	.rule {
-		width: 96px;
-		margin-bottom: 20px;
-		opacity: 0.6;
+		margin-top: 40px;
+		padding: 44px 0 96px;
+		border-top: 1px solid var(--line);
+		color: var(--ink-3);
 	}
 	p {
-		margin: 0 0 0.8em;
+		margin: 0 0 1em;
 	}
 	.links {
 		display: flex;
-		justify-content: center;
-		gap: 28px;
+		flex-wrap: wrap;
+		gap: 10px 26px;
 	}
 	.links a {
-		color: var(--text-2);
+		color: var(--ink-2);
 	}
 	.links a:hover {
-		color: var(--text);
+		color: var(--orange-hi);
+	}
+	.crypto {
+		color: var(--mot);
 	}
 	.copy {
-		opacity: 0.75;
+		font-size: 0.8rem;
+		letter-spacing: 0.06em;
 	}
 </style>

@@ -1,0 +1,149 @@
+---
+import { render } from 'astro:content';
+import FormattedDate from '../components/FormattedDate.astro';
+import Base from '../layouts/Base.astro';
+import { SITE_TITLE } from '../consts';
+import { getThoughts } from '../lib/posts';
+
+const all = await Promise.all((await getThoughts()).map(async (t) => ({ t, Content: (await render(t)).Content })));
+const groups = [
+	{ key: 'researching', zh: '研究中', en: 'Researching', note: '还没想明白的。', list: all.filter((x) => x.t.data.status === 'researching') },
+	{ key: 'internalized', zh: '已内化', en: 'Internalized', note: '想明白了，留下一点加成。', list: all.filter((x) => x.t.data.status === 'internalized') },
+];
+---
+
+<Base title={`思维内阁 · ${SITE_TITLE}`} description="比文章短的想法：一个念头、一句话、一个还没想明白的问题。">
+	<main class="container">
+		<header class="page-head">
+			<span class="label reveal">Thought Cabinet</span>
+			<h1 class="reveal" style="--d:.08s">思维内阁</h1>
+			<p class="lede reveal" style="--d:.16s">比文章短的东西放在这里：一个念头，一句读到的话，一个还没想明白的问题。</p>
+		</header>
+
+		{
+			groups.map(
+				(g) =>
+					g.list.length > 0 && (
+						<section class="group">
+							<div class="section-title reveal">
+								<span class="label">{g.en}</span>
+								<h2>{g.zh}</h2>
+							</div>
+							<div class="grid">
+								{g.list.map(({ t, Content }, i) => (
+									<article id={t.id} class={`thought panel reveal ${t.data.attr} ${t.data.status}`} style={`--d:${Math.min(i, 6) * 0.06}s`} data-pagefind-body>
+										<header>
+											<span class="ball" aria-hidden="true" />
+											<div>
+												<p class="label">
+													<FormattedDate date={t.data.date} />
+												</p>
+												<h3>{t.data.title}</h3>
+											</div>
+										</header>
+										<div class="body">
+											<Content />
+										</div>
+										{t.data.effect && <p class="effect">{t.data.effect}</p>}
+									</article>
+								))}
+							</div>
+						</section>
+					),
+			)
+		}
+		{all.length === 0 && <p class="empty">内阁还是空的。运行 <code>npm run new:thought "标题"</code> 放进第一个想法。</p>}
+	</main>
+</Base>
+
+<style>
+	main {
+		padding-bottom: clamp(64px, 9vw, 120px);
+	}
+	.group {
+		margin-bottom: 3.4em;
+	}
+	.section-title .label {
+		color: var(--orange);
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+		gap: 20px;
+		align-items: start;
+	}
+	.thought {
+		--c: var(--psy);
+		padding: 22px 24px 20px;
+		scroll-margin-top: calc(var(--nav-h) + 20px);
+	}
+	.thought.int {
+		--c: var(--int);
+	}
+	.thought.fys {
+		--c: var(--fys);
+	}
+	.thought.mot {
+		--c: var(--mot);
+	}
+	.thought::before {
+		background: var(--c);
+	}
+	.thought:target {
+		border-color: var(--c);
+	}
+	.thought header {
+		display: grid;
+		grid-template-columns: 52px 1fr;
+		gap: 16px;
+		align-items: center;
+		margin-bottom: 14px;
+	}
+	.ball {
+		width: 52px;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background:
+			radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.55), transparent 34%),
+			radial-gradient(circle at 60% 70%, color-mix(in srgb, var(--c) 55%, #000) 0%, var(--c) 70%);
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.5),
+			0 0 22px color-mix(in srgb, var(--c) 45%, transparent);
+	}
+	/* 还在研究的想法：球体缓慢明灭 */
+	.researching .ball {
+		animation: pulse 3.6s ease-in-out infinite;
+	}
+	@keyframes pulse {
+		50% {
+			filter: brightness(0.62) saturate(0.7);
+		}
+	}
+	.thought header .label {
+		margin: 0;
+		font-size: 0.72rem;
+	}
+	h3 {
+		font-size: 1.22rem;
+	}
+	.body {
+		font-size: 0.98rem;
+		line-height: 1.9;
+		color: var(--ink);
+	}
+	.body :global(p:last-child) {
+		margin-bottom: 0;
+	}
+	.effect {
+		margin: 16px 0 0;
+		padding-top: 12px;
+		border-top: 1px solid var(--line);
+		font-family: var(--font-display);
+		font-size: 0.9rem;
+		letter-spacing: 0.06em;
+		color: var(--c);
+	}
+	.empty {
+		color: var(--ink-2);
+	}
+</style>

@@ -19,4 +19,20 @@ const blog = defineCollection({
 		}),
 });
 
-export const collections = { blog };
+// 思维内阁：比文章短的想法。一条想法一个文件。
+const thoughts = defineCollection({
+	loader: glob({ base: './src/content/thoughts', pattern: '**/*.{md,mdx}' }),
+	schema: z.object({
+		title: z.string(),
+		date: z.coerce.date(),
+		/** researching = 还在想；internalized = 想明白了 */
+		status: z.enum(['researching', 'internalized']).default('researching'),
+		/** 归属的属性色：智力 / 精神 / 体格 / 运动 */
+		attr: z.enum(['int', 'psy', 'fys', 'mot']).default('psy'),
+		/** 想明白之后的「加成」，一句话，可选。例如「+1 内陆帝国：对海更有耐心」 */
+		effect: z.string().optional(),
+		draft: z.boolean().default(false),
+	}),
+});
+
+export const collections = { blog, thoughts };

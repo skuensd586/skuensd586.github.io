@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE_TITLE, url } from '../../consts';
+import { getTags } from '../../lib/posts';
+
+const tags = await getTags();
+---
+
+<Base title={`标签 · ${SITE_TITLE}`} description="按标签浏览文章。">
+	<main class="container">
+		<header class="page-head">
+			<span class="label reveal">Index　·　索引</span>
+			<h1 class="reveal" style="--d:.08s">标签</h1>
+		</header>
+		<nav aria-label="标签">
+			{
+				tags.map((t, i) => (
+					<a class="opt reveal" style={`--d:${Math.min(i, 8) * 0.04}s`} href={url(`tags/${encodeURIComponent(t.name)}/`)}>
+						<span class="n">{i + 1}.</span>— {t.name}
+						<span class="check">[{t.count} 篇]</span>
+					</a>
+				))
+			}
+			{tags.length === 0 && <p class="empty">还没有标签。</p>}
+		</nav>
+	</main>
+</Base>
+
+<style>
+	main {
+		max-width: 860px;
+		padding-bottom: clamp(64px, 9vw, 120px);
+	}
+	.opt {
+		font-size: 1.15rem;
+	}
+	.empty {
+		color: var(--ink-2);
+	}
+</style>

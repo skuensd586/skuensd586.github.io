@@ -24,7 +24,7 @@ export default defineConfig({
 	base,
 	integrations: [mdx(), sitemap()],
 	markdown: {
-		// 代码高亮：浅色/深色双主题，随系统切换
-		shikiConfig: { themes: { light: 'github-light', dark: 'github-dark' } },
+		// 代码高亮：全站是深色画布，用一套深色主题
+		shikiConfig: { theme: 'vitesse-dark' },
 	},
 });

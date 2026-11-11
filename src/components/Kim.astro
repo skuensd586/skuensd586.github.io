@@ -1,0 +1,92 @@
+---
+// 像素小人：橙色飞行夹克、眼镜、一丝不苟的站姿。
+// 用字符网格定义，每个字符是一个像素；构建时转成 SVG 方块。
+// 这是本站原创的像素画（同人致敬），不是游戏素材。
+
+const PALETTE: Record<string, string> = {
+	h: '#1c1815', // 头发
+	s: '#d7a47d', // 皮肤
+	d: '#b47f5d', // 皮肤暗部
+	g: '#23282b', // 镜框
+	l: '#bfe3ea', // 镜片
+	m: '#7c4f3c', // 嘴
+	o: '#e5672e', // 夹克
+	O: '#b54a1b', // 夹克暗部
+	w: '#ece5d2', // 白 T 恤
+	t: '#25373b', // 裤子
+	T: '#182629', // 裤子暗部
+	b: '#120f0d', // 靴子
+	n: '#2f5d8a', // 笔记本（蓝色封皮）
+};
+
+// 16 × 23
+const SPRITE = [
+	'................',
+	'.....hhhhhh.....',
+	'....hhhhhhhh....',
+	'....hhsssshh....',
+	'....hssssssh....',
+	'....sggggggs....',
+	'....sglgglgs....',
+	'....ssssssss....',
+	'.....ssmmss.....',
+	'......sdds......',
+	'...oooowwoooo...',
+	'..ooooowwooooo..',
+	'..oOooooooooOo..',
+	'..oOooooooooOo..',
+	'..oOooooooooOo..',
+	'..oOOOOOOOOOOo..',
+	'..ss.tttttt.ss..',
+	'.....tttttt.....',
+	'.....ttTTtt.....',
+	'.....tt..tt.....',
+	'.....tt..tt.....',
+	'.....tT..tT.....',
+	'....bbb..bbb....',
+];
+
+const px: { x: number; y: number; c: string; k: string }[] = [];
+SPRITE.forEach((row, y) => [...row].forEach((k, x) => k !== '.' && px.push({ x, y, c: PALETTE[k], k })));
+---
+
+<svg class="kim" viewBox="0 0 16 23" shape-rendering="crispEdges" role="img" aria-label="像素小人：金">
+	{px.filter((p) => p.k !== 'l').map((p) => <rect x={p.x} y={p.y} width="1" height="1" fill={p.c} />)}
+	<!-- 镜片单独成组：反光动画只作用于它 -->
+	<g class="lens">
+		{px.filter((p) => p.k === 'l').map((p) => <rect x={p.x} y={p.y} width="1" height="1" fill={p.c} />)}
+	</g>
+	<!-- 笔记本：平时不显示，记笔记时出现在手边 -->
+	<g class="notebook">
+		<rect x="11" y="14" width="3" height="3" fill={PALETTE.n}></rect>
+		<rect x="11" y="14" width="3" height="1" fill="#3b76ad"></rect>
+	</g>
+</svg>
+
+<style>
+	.kim {
+		display: block;
+		width: 100%;
+		height: auto;
+		image-rendering: pixelated;
+		filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
+	}
+	/* 镜片偶尔反一下光 */
+	.lens {
+		animation: glint 6s steps(1) infinite;
+	}
+	@keyframes glint {
+		0%,
+		92%,
+		100% {
+			filter: none;
+		}
+		94%,
+		97% {
+			filter: brightness(1.6) saturate(0.4);
+		}
+	}
+	.notebook {
+		display: none;
+	}
+</style>

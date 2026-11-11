@@ -23,28 +23,78 @@ const statusLabel = {
 	movie: { wish: '想看', doing: '在看', done: '看过' },
 	music: { wish: '想听', doing: '在听', done: '听过' },
 } as const;
+// 五档评分对应豆瓣的五个词
+const verdict = ['', '很差', '较差', '还行', '推荐', '力荐'];
 
 const count = (t: string) => items.filter((i) => i.type === t).length;
 const updated = data.updated ? new Date(data.updated) : null;
+
+// ---------- 统计 ----------
+const done = items.filter((i) => i.status === 'done');
+const rated = done.filter((i) => i.rating);
+const avg = rated.length ? rated.reduce((s, i) => s + i.rating!, 0) / rated.length : 0;
+const dist = [5, 4, 3, 2, 1].map((n) => ({ n, c: rated.filter((i) => i.rating === n).length }));
+const distMax = Math.max(1, ...dist.map((d) => d.c));
+const thisYear = new Date().getFullYear();
+const doneThisYear = done.filter((i) => new Date(i.date).getFullYear() === thisYear).length;
 ---
 
 <Base title={`书影音 · ${SITE_TITLE}`} description="我在豆瓣上标记的书、电影和音乐，每天自动同步。">
 	<main class="container">
-		<header class="head">
-			<p class="label reveal">书　影　音</p>
+		<header class="page-head">
+			<span class="label reveal">Inventory　·　物品栏</span>
 			<h1 class="reveal" style="--d:.08s">读过的，看过的，听过的</h1>
-			<p class="intro reveal" style="--d:.16s">
+			<p class="lede reveal" style="--d:.16s">
 				数据来自豆瓣，每天自动同步。
-				{updated && <span>最近一次：{updated.toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })}</span>}
+				{updated && <span>最近一次：{updated.toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })}。</span>}
 			</p>
 		</header>
 
-		<div class="filters label" role="group" aria-label="筛选">
+		{
+			items.length > 0 && (
+				<section class="stats panel reveal" aria-label="统计">
+					<dl class="nums">
+						<div>
+							<dt class="label">Total　共计</dt>
+							<dd>{items.length}</dd>
+						</div>
+						<div>
+							<dt class="label">Done　已完成</dt>
+							<dd>{done.length}</dd>
+						</div>
+						<div>
+							<dt class="label">{thisYear}　今年</dt>
+							<dd>{doneThisYear}</dd>
+						</div>
+						<div>
+							<dt class="label">Avg　平均评分</dt>
+							<dd>
+								{avg ? avg.toFixed(1) : '—'}
+								<small>/ 5</small>
+							</dd>
+						</div>
+					</dl>
+					<ul class="dist" aria-label="评分分布">
+						{dist.map((d) => (
+							<li>
+								<span class="label">{verdict[d.n]}</span>
+								<span class="bar">
+									<i style={`width:${(d.c / distMax) * 100}%`} />
+								</span>
+								<span class="num">{d.c}</span>
+							</li>
+						))}
+					</ul>
+				</section>
+			)
+		}
+
+		<div class="filters" role="group" aria-label="筛选">
 			<div class="seg" data-group="type">
-				<button class="on" data-v="all">全部 {items.length}</button>
-				<button data-v="book">书 {count('book')}</button>
-				<button data-v="movie">影 {count('movie')}</button>
-				<button data-v="music">音 {count('music')}</button>
+				<button class="on" data-v="all">全部 <i>{items.length}</i></button>
+				<button data-v="book">书 <i>{count('book')}</i></button>
+				<button data-v="movie">影 <i>{count('movie')}</i></button>
+				<button data-v="music">音 <i>{count('music')}</i></button>
 			</div>
 			<div class="seg" data-group="status">
 				<button class="on" data-v="all">不限</button>
@@ -62,15 +112,20 @@ const updated = data.updated ? new Date(data.updated) : null;
 							<a href={it.url} target="_blank" rel="noopener noreferrer">
 								<div class={`cover ${it.type}${it.cover ? ' has-img' : ''}`}>
 									{it.cover && <img src={url(it.cover)} alt={it.title} loading="lazy" decoding="async" />}
-									<span class="top label">{statusLabel[it.type][it.status]}</span>
+									<span class="top">{statusLabel[it.type][it.status]}</span>
 									<span class="title">{it.title}</span>
-									<span class="kind label">{typeLabel[it.type]}</span>
+									<span class="kind">{typeLabel[it.type]}</span>
 								</div>
 								<div class="info">
+									<h3>{it.title}</h3>
 									{it.rating ? (
-										<p class="stars" aria-label={`${it.rating} 星`}>
-											{'★'.repeat(it.rating)}
-											<span>{'★'.repeat(5 - it.rating)}</span>
+										<p class="rating">
+											<span class="pips" aria-hidden="true">
+												{[1, 2, 3, 4, 5].map((n) => (
+													<i class={n <= it.rating! ? 'on' : ''} />
+												))}
+											</span>
+											<span class="check">[{verdict[it.rating]}]</span>
 										</p>
 									) : null}
 									{it.comment && <p class="comment">{it.comment}</p>}
@@ -80,8 +135,8 @@ const updated = data.updated ? new Date(data.updated) : null;
 					))}
 				</ul>
 			) : (
-				<div class="empty">
-					<p class="big">这里还是一片空白的海滩</p>
+				<div class="empty panel">
+					<p class="big">物品栏是空的</p>
 					<p>
 						还没有同步到豆瓣数据。运行 <code>DOUBAN_ID=你的ID npm run sync:douban</code>，或等待每天的自动同步。
 					</p>
@@ -90,9 +145,9 @@ const updated = data.updated ? new Date(data.updated) : null;
 		}
 		<p class="none" hidden>这个筛选下没有内容。</p>
 
-		<p class="credit label">
-			影视封面与数据来自 TMDB，图书封面来自 Open Library。This product uses the TMDB API but is not endorsed
-			or certified by TMDB.
+		<p class="credit">
+			影视封面与数据来自 TMDB，图书封面来自 Open Library。This product uses the TMDB API but is not endorsed or
+			certified by TMDB.
 		</p>
 	</main>
 </Base>
@@ -128,30 +183,83 @@ const updated = data.updated ? new Date(data.updated) : null;
 
 <style>
 	main {
-		padding-block: clamp(56px, 9vw, 112px) clamp(72px, 10vw, 130px);
-	}
-	.head h1 {
-		margin-top: 0.5em;
-		font-size: clamp(2rem, 5.4vw, 3.2rem);
-		font-weight: 400;
-		letter-spacing: 0.16em;
-	}
-	.intro {
-		margin: 1em 0 0;
-		color: var(--text-2);
-		font-size: 0.95rem;
-		letter-spacing: 0.12em;
-	}
-	.intro span {
-		margin-left: 1.2em;
+		padding-bottom: clamp(64px, 9vw, 120px);
 	}
 
+	/* ---------- 统计 ---------- */
+	.stats {
+		display: grid;
+		grid-template-columns: 1.2fr 1fr;
+		gap: 28px 48px;
+		padding: 26px 30px;
+		margin-bottom: 36px;
+	}
+	.nums {
+		display: grid;
+		grid-template-columns: repeat(4, auto);
+		justify-content: space-between;
+		gap: 16px;
+		margin: 0;
+	}
+	.nums dt {
+		font-size: 0.7rem;
+	}
+	.nums dd {
+		margin: 0.1em 0 0;
+		font-family: var(--font-display);
+		font-size: 2.6rem;
+		font-weight: 700;
+		line-height: 1.1;
+		color: var(--ink);
+	}
+	.nums small {
+		margin-left: 0.3em;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: var(--ink-3);
+	}
+	.dist {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 5px;
+		align-content: center;
+	}
+	.dist li {
+		display: grid;
+		grid-template-columns: 3.4em 1fr 1.6em;
+		align-items: center;
+		gap: 12px;
+	}
+	.dist .label {
+		font-size: 0.74rem;
+		letter-spacing: 0.12em;
+	}
+	.bar {
+		height: 8px;
+		background: rgba(216, 209, 191, 0.08);
+	}
+	.bar i {
+		display: block;
+		height: 100%;
+		min-width: 2px;
+		background: var(--orange);
+	}
+	.num {
+		font-family: var(--font-display);
+		font-size: 0.85rem;
+		color: var(--ink-2);
+		text-align: right;
+	}
+
+	/* ---------- 筛选 ---------- */
 	.filters {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 12px 40px;
-		margin: 48px 0 40px;
-		padding-block: 16px;
+		gap: 12px 44px;
+		margin-bottom: 34px;
+		padding-block: 14px;
 		border-block: 1px solid var(--line);
 	}
 	.seg {
@@ -159,105 +267,100 @@ const updated = data.updated ? new Date(data.updated) : null;
 		gap: 22px;
 	}
 	.seg button {
-		padding: 0 0 3px;
+		padding: 2px 0 4px;
 		border: 0;
-		border-bottom: 1px solid transparent;
+		border-bottom: 2px solid transparent;
 		background: none;
-		color: var(--text-2);
-		font: inherit;
-		letter-spacing: inherit;
+		color: var(--ink-2);
+		font-family: var(--font-display);
+		font-size: 0.92rem;
+		font-weight: 500;
+		letter-spacing: 0.16em;
 		cursor: pointer;
 		transition:
-			color 0.3s var(--ease),
-			border-color 0.4s var(--ease);
+			color 0.2s var(--ease),
+			border-color 0.3s var(--ease);
+	}
+	.seg button i {
+		font-style: normal;
+		font-size: 0.78em;
+		color: var(--ink-3);
 	}
 	.seg button:hover {
-		color: var(--text);
+		color: var(--orange-hi);
 	}
 	.seg button.on {
-		color: var(--text);
-		border-bottom-color: var(--text);
+		color: var(--ink);
+		border-bottom-color: var(--orange);
 	}
 
+	/* ---------- 网格 ---------- */
 	.grid {
 		list-style: none;
 		margin: 0;
 		padding: 0;
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
-		gap: 40px 28px;
+		grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+		gap: 38px 24px;
 	}
 	.item[hidden] {
 		display: none;
 	}
 	.item a {
 		display: block;
-		color: var(--text);
+		color: var(--ink);
 	}
 
-	/* ---------- 题字封面：纸色 + 竖排书名 + 内框细线 ---------- */
 	.cover {
-		--paper: #e9dfcf;
-		--ink: #4b4032;
+		--c: var(--int);
 		position: relative;
 		display: grid;
 		grid-template-rows: auto 1fr auto;
 		justify-items: center;
 		aspect-ratio: 2 / 3;
-		padding: 18px 12px 14px;
-		background: var(--paper);
-		color: var(--ink);
+		padding: 16px 12px 12px;
+		background:
+			linear-gradient(160deg, color-mix(in srgb, var(--c) 34%, #0e1413), color-mix(in srgb, var(--c) 10%, #0e1413));
+		border: 1px solid var(--line-2);
 		box-shadow: var(--shadow);
 		overflow: hidden;
 		transition:
-			transform 0.7s var(--ease-out),
-			box-shadow 0.7s var(--ease-out);
-	}
-	.cover::before {
-		content: '';
-		position: absolute;
-		inset: 8px;
-		border: 1px solid color-mix(in srgb, var(--ink) 32%, transparent);
-		pointer-events: none;
+			transform 0.5s var(--ease-out),
+			border-color 0.3s var(--ease);
 	}
 	.cover.movie {
-		--paper: #d3e0e4;
-		--ink: #2f4a56;
+		--c: var(--fys);
 	}
 	.cover.music {
-		--paper: #dbe0cf;
-		--ink: #3d4a35;
-	}
-	@media (prefers-color-scheme: dark) {
-		.cover {
-			--paper: #2b2a26;
-			--ink: #d9cfbf;
-		}
-		.cover.movie {
-			--paper: #1c2a31;
-			--ink: #b6ccd5;
-		}
-		.cover.music {
-			--paper: #232a20;
-			--ink: #c4cdb8;
-		}
+		--c: var(--psy);
 	}
 	.item a:hover .cover {
-		transform: translateY(-6px);
-		box-shadow: var(--shadow-hover);
+		transform: translateY(-6px) rotate(-1deg);
+		border-color: var(--orange);
 	}
-	.cover .label {
-		color: inherit;
-		opacity: 0.7;
+	.top,
+	.kind {
+		font-family: var(--font-display);
 		font-size: 0.7rem;
-		letter-spacing: 0.3em;
+		font-weight: 500;
+		letter-spacing: 0.24em;
+		color: var(--c);
+	}
+	.title {
+		align-self: center;
+		max-height: 100%;
+		overflow: hidden;
+		writing-mode: vertical-rl;
+		font-size: 1.12rem;
+		font-weight: 900;
+		line-height: 1.5;
+		letter-spacing: 0.26em;
 	}
 	/* 有真实封面时：图片铺满，只保留左上角的状态角标 */
 	.cover.has-img {
 		padding: 0;
-		background: var(--bg-alt);
+		background: var(--panel);
 	}
-	.cover.has-img::before,
 	.cover.has-img .title,
 	.cover.has-img .kind {
 		display: none;
@@ -269,78 +372,95 @@ const updated = data.updated ? new Date(data.updated) : null;
 		height: 100%;
 		object-fit: cover;
 		display: block;
+		filter: saturate(0.85) contrast(1.04);
+		transition: filter 0.4s var(--ease);
+	}
+	.item a:hover .cover img {
+		filter: none;
 	}
 	.cover.has-img .top {
 		position: absolute;
-		left: 8px;
-		top: 8px;
-		padding: 1px 8px;
-		background: rgba(20, 20, 20, 0.55);
-		-webkit-backdrop-filter: blur(6px);
-		backdrop-filter: blur(6px);
-		color: #fff;
-		opacity: 1;
-		letter-spacing: 0.2em;
-	}
-	.credit {
-		margin-top: 72px;
-		padding-top: 20px;
-		border-top: 1px solid var(--line);
-		font-size: 0.7rem;
-		letter-spacing: 0.08em;
-		line-height: 1.8;
-		opacity: 0.8;
-	}
-	.title {
-		align-self: center;
-		max-height: 100%;
-		overflow: hidden;
-		writing-mode: vertical-rl;
-		font-size: 1.15rem;
-		font-weight: 500;
-		line-height: 1.5;
-		letter-spacing: 0.3em;
-		text-align: start;
+		left: 0;
+		top: 10px;
+		padding: 2px 9px 2px 8px;
+		background: var(--bg);
+		border-left: 3px solid var(--orange);
+		color: var(--ink);
+		letter-spacing: 0.16em;
 	}
 
 	.info {
 		padding-top: 12px;
 	}
-	.stars {
-		margin: 0;
-		color: var(--accent);
-		font-size: 0.7rem;
-		letter-spacing: 3px;
-		line-height: 1.4;
+	.info h3 {
+		font-size: 0.98rem;
+		line-height: 1.45;
+		transition: color 0.2s var(--ease);
 	}
-	.stars span {
-		opacity: 0.2;
+	.item a:hover h3 {
+		color: var(--orange-hi);
+	}
+	.rating {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin: 6px 0 0;
+	}
+	.pips {
+		display: inline-flex;
+		gap: 4px;
+	}
+	.pips i {
+		width: 8px;
+		height: 8px;
+		border: 1px solid var(--orange);
+		transform: rotate(45deg);
+	}
+	.pips i.on {
+		background: var(--orange);
 	}
 	.comment {
 		margin: 6px 0 0;
-		color: var(--text-2);
-		font-size: 0.82rem;
+		color: var(--ink-2);
+		font-size: 0.84rem;
 		line-height: 1.7;
-		letter-spacing: 0.04em;
 		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		line-clamp: 3;
+		-webkit-line-clamp: 4;
+		line-clamp: 4;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
 
 	.empty {
-		padding: 64px 24px;
-		border: 1px solid var(--line);
+		padding: 56px 24px;
 		text-align: center;
-		color: var(--text-2);
+		color: var(--ink-2);
 	}
 	.empty .big {
 		font-size: 1.4rem;
-		color: var(--text);
-		letter-spacing: 0.12em;
+		font-weight: 900;
+		color: var(--ink);
 	}
 	.none {
-		color: var(--text-2);
+		color: var(--ink-2);
+	}
+	.credit {
+		margin-top: 72px;
+		padding-top: 18px;
+		border-top: 1px solid var(--line);
+		font-family: var(--font-sans);
+		font-size: 0.72rem;
+		line-height: 1.8;
+		color: var(--ink-3);
+	}
+
+	@media (max-width: 860px) {
+		.stats {
+			grid-template-columns: 1fr;
+			padding: 22px;
+		}
+		.nums {
+			grid-template-columns: repeat(2, 1fr);
+		}
 	}
 </style>

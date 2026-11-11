@@ -1,0 +1,45 @@
+---
+// 评论区（giscus）。只有 src/consts.ts 里的 GISCUS 四项都填好才会渲染。
+import { GISCUS } from '../consts';
+
+const ready = Boolean(GISCUS.repo && GISCUS.repoId && GISCUS.category && GISCUS.categoryId);
+---
+
+{
+	ready && (
+		<section class="comments container" aria-label="评论">
+			<div class="section-title">
+				<span class="label">Dialogue</span>
+				<h2>留言</h2>
+			</div>
+			<script
+				is:inline
+				src="https://giscus.app/client.js"
+				data-repo={GISCUS.repo}
+				data-repo-id={GISCUS.repoId}
+				data-category={GISCUS.category}
+				data-category-id={GISCUS.categoryId}
+				data-mapping="pathname"
+				data-strict="1"
+				data-reactions-enabled="1"
+				data-emit-metadata="0"
+				data-input-position="top"
+				data-theme="dark_dimmed"
+				data-lang="zh-CN"
+				data-loading="lazy"
+				crossorigin="anonymous"
+				async
+			/>
+		</section>
+	)
+}
+
+<style>
+	.comments {
+		max-width: 760px;
+		padding-block: 24px 40px;
+	}
+	.section-title .label {
+		color: var(--orange);
+	}
+</style>

@@ -1,142 +1,59 @@
 ---
-import FormattedDate from '../../components/FormattedDate.astro';
+import PostList from '../../components/PostList.astro';
 import Base from '../../layouts/Base.astro';
 import { SITE_TITLE, url } from '../../consts';
-import { getPosts } from '../../lib/posts';
+import { getPosts, getTags } from '../../lib/posts';
 
 const posts = await getPosts();
-
-// 按年份分组（已是倒序）
-const byYear = new Map<number, typeof posts>();
-for (const post of posts) {
-	const year = post.data.pubDate.getFullYear();
-	byYear.set(year, [...(byYear.get(year) ?? []), post]);
-}
+const tags = await getTags();
 ---
 
 <Base title={`文章 · ${SITE_TITLE}`} description="所有文章，按时间倒序排列。">
 	<main class="container">
-		<header class="head">
-			<p class="label reveal">文　章</p>
+		<header class="page-head">
+			<span class="label reveal">Journal　·　案卷</span>
 			<h1 class="reveal" style="--d:.08s">写下来的话</h1>
-			<p class="count reveal" style="--d:.16s">共 {posts.length} 篇</p>
+			<p class="lede reveal" style="--d:.16s">共 {posts.length} 篇。未完成的，也算在内。</p>
 		</header>
 
 		{
-			[...byYear].map(([year, list]) => (
-				<section class="year-block">
-					<h2 class="year reveal">{year}</h2>
-					<ul>
-						{list.map((post, i) => (
-							<li class="reveal" style={`--d:${Math.min(i, 4) * 0.06}s`}>
-								<a href={url(`blog/${post.id}/`)}>
-									<div class="meta label">
-										<FormattedDate date={post.data.pubDate} />
-										{post.data.draft && <span class="draft">草稿</span>}
-									</div>
-									<div class="body">
-										<h3>{post.data.title}</h3>
-										<p>{post.data.description}</p>
-										{post.data.tags.length > 0 && (
-											<p class="tags label">{post.data.tags.map((t) => `# ${t}`).join('　')}</p>
-										)}
-									</div>
-								</a>
-							</li>
-						))}
-					</ul>
-				</section>
-			))
+			tags.length > 0 && (
+				<p class="tags reveal">
+					{tags.map((t) => (
+						<a href={url(`tags/${encodeURIComponent(t.name)}/`)}>
+							#{t.name}
+							<i>{t.count}</i>
+						</a>
+					))}
+				</p>
+			)
 		}
 
+		<PostList posts={posts} />
 		{posts.length === 0 && <p class="empty">还没有文章。运行 <code>npm run new "标题"</code> 写下第一篇。</p>}
 	</main>
 </Base>
 
 <style>
 	main {
-		max-width: 800px;
-		padding-block: clamp(56px, 9vw, 112px) clamp(72px, 10vw, 130px);
+		max-width: 860px;
+		padding-bottom: clamp(64px, 9vw, 120px);
 	}
-	.head {
-		margin-bottom: clamp(40px, 7vw, 80px);
-	}
-	.head h1 {
-		margin-top: 0.5em;
-		font-size: clamp(2.2rem, 6vw, 3.6rem);
-		font-weight: 400;
-		letter-spacing: 0.16em;
-	}
-	.count {
-		margin: 0.8em 0 0;
-		color: var(--text-2);
-		font-size: 0.95rem;
-		letter-spacing: 0.15em;
-	}
-	.year {
-		margin: 0 0 0.3em;
-		font-size: 1.1rem;
-		font-weight: 400;
-		letter-spacing: 0.3em;
-		color: var(--text-2);
-	}
-	.year-block {
-		margin-bottom: 3em;
-	}
-	ul {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-	li a {
-		display: grid;
-		grid-template-columns: 9.5em 1fr;
-		gap: 8px 24px;
-		padding: 30px 0;
-		border-top: 1px solid var(--line);
-		color: var(--text);
-		transition: padding-left 0.6s var(--ease-out);
-	}
-	li:last-child a {
-		border-bottom: 1px solid var(--line);
-	}
-	li a:hover {
-		padding-left: 12px;
-	}
-	li a:hover h3 {
-		color: var(--accent);
-	}
-	.meta {
+	.tags {
 		display: flex;
-		gap: 10px;
-		align-items: baseline;
-		padding-top: 0.55em;
+		flex-wrap: wrap;
+		gap: 8px 20px;
+		margin: 0 0 2.6em;
+		font-family: var(--font-display);
+		letter-spacing: 0.08em;
 	}
-	.draft {
-		padding: 0 8px;
-		border: 1px solid var(--text-2);
-		border-radius: 2px;
-		font-size: 0.7rem;
-	}
-	h3 {
-		font-size: 1.4rem;
-		transition: color 0.3s var(--ease);
-	}
-	.body p {
-		margin: 0.4em 0 0;
-		color: var(--text-2);
-		font-size: 0.95rem;
-	}
-	.body .tags {
-		margin-top: 0.8em;
-		letter-spacing: 0.1em;
+	.tags i {
+		margin-left: 0.35em;
+		font-style: normal;
+		font-size: 0.8em;
+		color: var(--ink-3);
 	}
 	.empty {
-		color: var(--text-2);
-	}
-	@media (max-width: 720px) {
-		li a {
-			grid-template-columns: 1fr;
-		}
+		color: var(--ink-2);
 	}
 </style>

@@ -1,0 +1,141 @@
+---
+// 文章列表（按年份分组的「任务」样式），文章页和标签页共用。
+import type { CollectionEntry } from 'astro:content';
+import { url } from '../consts';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	posts: CollectionEntry<'blog'>[];
+}
+const { posts } = Astro.props;
+
+const byYear = new Map<number, typeof posts>();
+for (const post of posts) {
+	const year = post.data.pubDate.getFullYear();
+	byYear.set(year, [...(byYear.get(year) ?? []), post]);
+}
+---
+
+{
+	[...byYear].map(([year, list]) => (
+		<section class="year-block">
+			<h2 class="year reveal">
+				<span>{year}</span>
+				<i class="label">{list.length} 篇</i>
+			</h2>
+			<ul>
+				{list.map((post, i) => (
+					<li class="reveal" style={`--d:${Math.min(i, 5) * 0.05}s`}>
+						<a href={url(`blog/${post.id}/`)}>
+							<span class="box" aria-hidden="true" />
+							<div>
+								<h3>
+									{post.data.title}
+									{post.data.draft && <em class="draft">草稿</em>}
+								</h3>
+								<p>{post.data.description}</p>
+								{post.data.tags.length > 0 && <p class="tags">{post.data.tags.map((t) => `#${t}`).join('　')}</p>}
+							</div>
+							<time class="label">
+								<FormattedDate date={post.data.pubDate} />
+							</time>
+						</a>
+					</li>
+				))}
+			</ul>
+		</section>
+	))
+}
+
+<style>
+	.year-block {
+		margin-bottom: 2.6em;
+	}
+	.year {
+		display: flex;
+		align-items: baseline;
+		gap: 14px;
+		margin-bottom: 0.3em;
+		font-family: var(--font-display);
+		font-size: 2.2rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		color: var(--ink-3);
+	}
+	.year i {
+		font-style: normal;
+	}
+	ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	a {
+		display: grid;
+		grid-template-columns: 22px 1fr auto;
+		gap: 4px 18px;
+		align-items: start;
+		padding: 22px 0;
+		border-bottom: 1px solid var(--line);
+		color: var(--ink);
+		transition: padding-left 0.5s var(--ease-out);
+	}
+	li:first-child a {
+		border-top: 1px solid var(--line);
+	}
+	a:hover {
+		padding-left: 10px;
+	}
+	a:hover h3 {
+		color: var(--orange-hi);
+	}
+	.box {
+		width: 14px;
+		height: 14px;
+		margin-top: 0.62em;
+		border: 1.5px solid var(--orange);
+		transition: background 0.3s var(--ease);
+	}
+	a:hover .box {
+		background: var(--orange);
+	}
+	h3 {
+		font-size: 1.32rem;
+		transition: color 0.2s var(--ease);
+	}
+	.draft {
+		margin-left: 0.8em;
+		padding: 0 0.5em;
+		border: 1px solid var(--mot);
+		color: var(--mot);
+		font-family: var(--font-display);
+		font-size: 0.7rem;
+		font-style: normal;
+		font-weight: 500;
+		letter-spacing: 0.1em;
+		vertical-align: middle;
+	}
+	p {
+		margin: 0.3em 0 0;
+		color: var(--ink-2);
+		font-size: 0.94rem;
+	}
+	.tags {
+		font-family: var(--font-display);
+		font-size: 0.82rem;
+		letter-spacing: 0.08em;
+		color: var(--ink-3);
+	}
+	time {
+		padding-top: 0.7em;
+	}
+	@media (max-width: 720px) {
+		a {
+			grid-template-columns: 22px 1fr;
+		}
+		time {
+			grid-column: 2;
+			padding-top: 0;
+		}
+	}
+</style>

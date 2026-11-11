@@ -35,6 +35,16 @@ git push
 
 GitHub Actions 会自动构建并部署，一两分钟后线上就能看到。
 
+## 更短的东西：思维内阁
+
+不够写成文章的念头，放进[思维内阁](../../thoughts/)：
+
+```bash
+npm run new:thought "一个想法"
+```
+
+想法没有草稿状态，推送后直接出现。还在想的时候 `status` 写 `researching`，想明白了改成 `internalized`。
+
 ## frontmatter 字段
 
 | 字段 | 说明 |

@@ -2,162 +2,362 @@
 import Base from '../layouts/Base.astro';
 import { SITE_TITLE, url } from '../consts';
 
-// ✏️ 把下面的内容改成你自己的信息
+// ✏️ 把下面的内容改成你自己的信息 ------------------------------------------
 const profile = {
 	name: '待补充',
-	tagline: '待补充',
+	archetype: '待补充：一句话的自我定位', // 例如「写代码的人，也写别的」
 	bio: ['待补充：一段自我介绍。', '待补充：兴趣爱好，以及为什么写这个博客。'],
+
+	// 四项属性。value 填 1–6 的数字（不填显示「？」）；skills 是你自己定义的技能，lv 为 0–5。
+	attributes: [
+		{ key: 'int', zh: '智力', en: 'Intellect', value: null as number | null, skills: [{ name: '待补充', lv: 0 }, { name: '待补充', lv: 0 }, { name: '待补充', lv: 0 }] },
+		{ key: 'psy', zh: '精神', en: 'Psyche', value: null as number | null, skills: [{ name: '待补充', lv: 0 }, { name: '待补充', lv: 0 }, { name: '待补充', lv: 0 }] },
+		{ key: 'fys', zh: '体格', en: 'Physique', value: null as number | null, skills: [{ name: '待补充', lv: 0 }, { name: '待补充', lv: 0 }, { name: '待补充', lv: 0 }] },
+		{ key: 'mot', zh: '运动', en: 'Motorics', value: null as number | null, skills: [{ name: '待补充', lv: 0 }, { name: '待补充', lv: 0 }, { name: '待补充', lv: 0 }] },
+	],
+
 	now: [
 		{ k: '在做', v: '待补充' },
 		{ k: '在读', v: '待补充' },
 		{ k: '在学', v: '待补充' },
 	],
-	skills: ['待补充', '待补充', '待补充'],
+
+	// 论文 / 作品（可选）。留空数组则整节不显示。
+	// 例：{ title: '论文标题', venue: '期刊或会议, 2026', href: 'https://…' }
+	publications: [] as { title: string; venue: string; href?: string }[],
+
 	contacts: [
 		{ label: 'GitHub（待补充）', href: '#' },
 		{ label: '邮箱（待补充）', href: '#' },
 	],
 };
+// ---------------------------------------------------------------------------
+
+// 一幅程序化的「肖像」：冷色背景上，用暖色笔触堆出一个半身剪影。
+function rng(seed: number) {
+	let a = seed >>> 0;
+	return () => {
+		a = (a + 0x6d2b79f5) | 0;
+		let t = Math.imul(a ^ (a >>> 15), 1 | a);
+		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	};
+}
+const R = rng(23);
+const r = (a: number, b: number) => a + (b - a) * R();
+const pick = <T,>(arr: T[]) => arr[Math.floor(R() * arr.length)];
+const mk = (n: number, pal: string[], th: [number, number], len: [number, number], rot: [number, number]) =>
+	Array.from({ length: n }, () => {
+		const x = r(-20, 320), y = r(-20, 420), l = r(...len), a = (r(...rot) * Math.PI) / 180;
+		return { d: `M${(x - (Math.cos(a) * l) / 2).toFixed(0)} ${(y - (Math.sin(a) * l) / 2).toFixed(0)}L${(x + (Math.cos(a) * l) / 2).toFixed(0)} ${(y + (Math.sin(a) * l) / 2).toFixed(0)}`, c: pick(pal), w: Math.round(r(...th)), o: +r(0.7, 1).toFixed(2) };
+	});
+const bgStrokes = mk(90, ['#15302f', '#1d4343', '#2a605e', '#3a7f7a', '#102322', '#47948a'], [16, 38], [50, 150], [-60, -20]);
+const figStrokes = mk(150, ['#d9a05b', '#c9824a', '#b5512c', '#e6bd80', '#8f3f25', '#efd3a0', '#5a2a22'], [10, 26], [30, 90], [40, 110]);
 ---
 
-<Base title={`关于 · ${SITE_TITLE}`} description={profile.tagline}>
-	<main>
-		<section class="intro container">
-			<p class="label reveal">关　于</p>
-			<h1 class="reveal" style="--d:.08s">{profile.name}</h1>
-			<p class="tagline reveal" style="--d:.16s">{profile.tagline}</p>
-			<svg class="rule reveal" style="--d:.24s" viewBox="0 0 120 12" aria-hidden="true">
-				<path d="M0 6C10 0 20 12 30 6S50 0 60 6S80 12 90 6S110 0 120 6" fill="none" stroke="currentColor" stroke-width="1"></path>
-			</svg>
-		</section>
+<Base title={`关于 · ${SITE_TITLE}`} description={profile.archetype}>
+	<main class="container">
+		<header class="page-head">
+			<span class="label reveal">Character Sheet　·　人物档案</span>
+		</header>
 
-		<section class="block container reveal">
-			<h2 class="label">自　述</h2>
-			<div class="text">
-				{profile.bio.map((p) => <p>{p}</p>)}
+		<section class="top">
+			<figure class="portrait reveal" aria-hidden="true">
+				<svg viewBox="0 0 300 400" preserveAspectRatio="xMidYMid slice">
+					<defs>
+						<filter id="pf-brush" x="-5%" y="-5%" width="110%" height="110%">
+							<feTurbulence type="fractalNoise" baseFrequency="0.04 0.02" numOctaves="2" seed="3" result="n"></feTurbulence>
+							<feDisplacementMap in="SourceGraphic" in2="n" scale="14"></feDisplacementMap>
+						</filter>
+						<clipPath id="pf-bust">
+							<ellipse cx="150" cy="150" rx="62" ry="76"></ellipse>
+							<path d="M20 420C24 310 80 262 150 262S276 310 280 420Z"></path>
+							<rect x="124" y="210" width="52" height="70"></rect>
+						</clipPath>
+					</defs>
+					<rect width="300" height="400" fill="#16302f"></rect>
+					<g fill="none" stroke-linecap="round" filter="url(#pf-brush)">
+						{bgStrokes.map((s) => <path d={s.d} stroke={s.c} stroke-width={s.w} opacity={s.o} />)}
+					</g>
+					<g clip-path="url(#pf-bust)">
+						<rect width="300" height="400" fill="#b5512c"></rect>
+						<g fill="none" stroke-linecap="round" filter="url(#pf-brush)">
+							{figStrokes.map((s) => <path d={s.d} stroke={s.c} stroke-width={s.w} opacity={s.o} />)}
+						</g>
+					</g>
+				</svg>
+			</figure>
+
+			<div class="who-am-i">
+				<h1 class="reveal" style="--d:.08s">{profile.name}</h1>
+				<p class="arche reveal" style="--d:.16s">{profile.archetype}</p>
+				<div class="bio reveal" style="--d:.24s">
+					{profile.bio.map((p) => <p>{p}</p>)}
+				</div>
 			</div>
 		</section>
 
-		<section class="block container reveal">
-			<h2 class="label">近　况</h2>
+		<section class="attrs" aria-label="属性">
+			{
+				profile.attributes.map((a, i) => (
+					<article class={`attr panel reveal ${a.key}`} style={`--d:${i * 0.08}s`}>
+						<header>
+							<span class="val">{a.value ?? '?'}</span>
+							<div>
+								<p class="label">{a.en}</p>
+								<h2>{a.zh}</h2>
+							</div>
+						</header>
+						<ul>
+							{a.skills.map((s) => (
+								<li>
+									<span>{s.name}</span>
+									<span class="pips" aria-label={`${s.lv} 级`}>
+										{[1, 2, 3, 4, 5].map((n) => (
+											<i class={n <= s.lv ? 'on' : ''} />
+										))}
+									</span>
+								</li>
+							))}
+						</ul>
+					</article>
+				))
+			}
+		</section>
+
+		<section class="block reveal">
+			<div class="section-title">
+				<span class="label">Now</span>
+				<h2>近况</h2>
+			</div>
 			<dl class="now">
 				{
 					profile.now.map((n) => (
 						<div>
-							<dt>{n.k}</dt>
+							<dt class="label">{n.k}</dt>
 							<dd>{n.v}</dd>
 						</div>
 					))
 				}
 			</dl>
-			<p class="more"><a class="link" href={url('media/')}>更多书影音记录</a></p>
-		</section>
-
-		<section class="block container reveal">
-			<h2 class="label">所　长</h2>
-			<ul class="chips">
-				{profile.skills.map((s) => <li>{s}</li>)}
-			</ul>
 		</section>
 
 		{
-			profile.contacts.length > 0 && (
-				<section class="block container reveal">
-					<h2 class="label">联　系</h2>
-					<ul class="contacts">
-						{profile.contacts.map((c) => (
+			profile.publications.length > 0 && (
+				<section class="block reveal">
+					<div class="section-title">
+						<span class="label">Works</span>
+						<h2>论文与作品</h2>
+					</div>
+					<ol class="pubs">
+						{profile.publications.map((p) => (
 							<li>
-								<a class="link" href={c.href}>
-									{c.label}
-								</a>
+								{p.href ? <a href={p.href}>{p.title}</a> : <span>{p.title}</span>}
+								<span class="check">{p.venue}</span>
 							</li>
 						))}
-					</ul>
+					</ol>
 				</section>
 			)
 		}
+
+		<section class="block reveal">
+			<div class="section-title">
+				<span class="label">Dialogue</span>
+				<h2>接下来</h2>
+			</div>
+			<nav aria-label="联系与更多">
+				{
+					profile.contacts.map((c, i) => (
+						<a class="opt" href={c.href}>
+							<span class="n">{i + 1}.</span>— {c.label}
+						</a>
+					))
+				}
+				<a class="opt" href={url('media/')}><span class="n">{profile.contacts.length + 1}.</span>— 看看这个人最近读了什么、看了什么。</a>
+				<a class="opt" href={url('thoughts/')}><span class="n">{profile.contacts.length + 2}.</span>— 打开思维内阁。</a>
+			</nav>
+		</section>
 	</main>
 </Base>
 
 <style>
 	main {
-		padding-bottom: clamp(72px, 10vw, 130px);
+		padding-bottom: clamp(64px, 9vw, 120px);
 	}
-	.intro {
-		max-width: 760px;
-		padding-block: clamp(64px, 11vw, 136px) clamp(32px, 5vw, 56px);
-		text-align: center;
+	.page-head {
+		padding-bottom: 20px;
+	}
+	.page-head .label {
+		margin: 0;
+	}
+
+	.top {
+		display: grid;
+		grid-template-columns: min(300px, 34%) 1fr;
+		gap: clamp(24px, 5vw, 64px);
+		align-items: end;
+		margin-bottom: clamp(40px, 6vw, 72px);
+	}
+	.portrait {
+		margin: 0;
+		aspect-ratio: 3 / 4;
+		border: 1px solid var(--line-2);
+		outline: 6px solid var(--panel);
+		outline-offset: 0;
+		box-shadow: var(--shadow);
+		overflow: hidden;
+		background: #16302f;
+	}
+	.portrait svg {
+		display: block;
+		width: 100%;
+		height: 100%;
 	}
 	h1 {
-		margin-top: 0.7em;
-		font-size: clamp(2.2rem, 6vw, 3.6rem);
-		font-weight: 400;
-		letter-spacing: 0.2em;
+		font-size: clamp(2.6rem, 7vw, 4.6rem);
+		font-weight: 900;
+		line-height: 1.15;
+		letter-spacing: 0.08em;
 	}
-	.tagline {
-		margin: 1em 0 0;
-		color: var(--text-2);
-		font-size: clamp(1rem, 2vw, 1.2rem);
-		letter-spacing: 0.18em;
+	.arche {
+		margin: 0.8em 0 1.4em;
+		padding-bottom: 1.2em;
+		border-bottom: 1px solid var(--line-2);
+		color: var(--ochre);
+		font-size: 1.1rem;
 	}
-	.rule {
-		width: 96px;
-		margin-top: 2.4em;
-		color: var(--text-2);
-		opacity: 0.6;
-	}
-	.block {
-		display: grid;
-		grid-template-columns: 8em 1fr;
-		gap: 12px 32px;
-		max-width: 760px;
-		padding-block: 36px;
-		border-top: 1px solid var(--line);
-	}
-	.block h2 {
-		margin: 0.5em 0 0;
-		font-weight: 400;
-	}
-	.text p {
-		margin: 0 0 1.2em;
-		font-size: 1.05rem;
+	.bio p {
 		line-height: 2;
 	}
-	.text p:last-child {
+	.bio p:last-child {
 		margin-bottom: 0;
 	}
-	.now {
+
+	/* ---------- 属性 ---------- */
+	.attrs {
 		display: grid;
-		gap: 4px;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 16px;
+		margin-bottom: clamp(48px, 7vw, 84px);
+	}
+	.attr {
+		--c: var(--int);
+		padding: 20px 20px 16px;
+	}
+	.attr.psy {
+		--c: var(--psy);
+	}
+	.attr.fys {
+		--c: var(--fys);
+	}
+	.attr.mot {
+		--c: var(--mot);
+	}
+	.attr::before {
+		background: var(--c);
+		width: 100%;
+	}
+	.attr header {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding-bottom: 14px;
+		border-bottom: 1px solid var(--line);
+	}
+	.val {
+		font-family: var(--font-display);
+		font-size: 3.2rem;
+		font-weight: 700;
+		line-height: 1;
+		color: var(--c);
+		min-width: 0.8em;
+	}
+	.attr .label {
+		margin: 0;
+		font-size: 0.7rem;
+		color: var(--c);
+	}
+	.attr h2 {
+		font-size: 1.3rem;
+		font-weight: 900;
+	}
+	.attr ul {
+		list-style: none;
+		margin: 12px 0 0;
+		padding: 0;
+		font-size: 0.92rem;
+	}
+	.attr li {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 10px;
+		padding: 5px 0;
+		color: var(--ink-2);
+	}
+	.pips {
+		display: inline-flex;
+		gap: 3px;
+		flex: none;
+	}
+	.pips i {
+		width: 7px;
+		height: 7px;
+		border: 1px solid var(--c);
+		opacity: 0.55;
+	}
+	.pips i.on {
+		background: var(--c);
+		opacity: 1;
+	}
+
+	.block {
+		max-width: 860px;
+		margin-bottom: clamp(40px, 6vw, 64px);
+	}
+	.section-title .label {
+		color: var(--orange);
+	}
+	.now {
 		margin: 0;
 	}
 	.now div {
-		display: flex;
-		gap: 20px;
-		padding: 8px 0;
-	}
-	.now dt {
-		min-width: 3em;
-		color: var(--text-2);
+		display: grid;
+		grid-template-columns: 5em 1fr;
+		gap: 16px;
+		padding: 12px 0;
+		border-bottom: 1px solid var(--line);
 	}
 	.now dd {
 		margin: 0;
 	}
-	.more {
-		margin: 1.2em 0 0;
-	}
-	.chips,
-	.contacts {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 10px 28px;
-		list-style: none;
+	.pubs {
 		margin: 0;
-		padding: 0;
+		padding-left: 1.4em;
 	}
-	@media (max-width: 720px) {
-		.block {
+	.pubs li {
+		padding: 6px 0;
+	}
+	.pubs li::marker {
+		color: var(--orange);
+		font-family: var(--font-display);
+	}
+	.pubs .check {
+		display: block;
+	}
+
+	@media (max-width: 900px) {
+		.attrs {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+	@media (max-width: 620px) {
+		.top {
 			grid-template-columns: 1fr;
+		}
+		.portrait {
+			max-width: 220px;
 		}
 	}
 </style>

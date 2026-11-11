@@ -1,0 +1,51 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE_TITLE, url } from '../consts';
+---
+
+<Base title={`检定失败 · ${SITE_TITLE}`} description="这个页面不存在。">
+	<main class="container">
+		<p class="code" aria-hidden="true">404</p>
+		<h1>检定失败</h1>
+		<div class="log">
+			<p><span class="who mot">五感发达</span> <span class="check">[不可能：失败]</span> — 你四处看了看。这里什么都没有。</p>
+			<p><span class="who int">逻辑思维</span> <span class="check">[简单：成功]</span> — 链接写错了，或者这一页被挪走了。</p>
+			<p><span class="who psy">钢铁意志</span> — 没关系。回去就是了。</p>
+		</div>
+		<nav>
+			<a class="opt" href={url('')}><span class="n">1.</span>— 回到首页。</a>
+			<a class="opt" href={url('blog/')}><span class="n">2.</span>— 去看文章。</a>
+			<a class="opt" href={url('search/')}><span class="n">3.</span>— 搜索一下。</a>
+		</nav>
+	</main>
+</Base>
+
+<style>
+	main {
+		max-width: 720px;
+		min-height: 72vh;
+		padding-block: clamp(56px, 10vw, 120px);
+	}
+	.code {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: clamp(5rem, 18vw, 10rem);
+		font-weight: 700;
+		line-height: 1;
+		color: var(--fys);
+		opacity: 0.85;
+	}
+	h1 {
+		margin: 0.2em 0 1em;
+		font-size: clamp(2rem, 6vw, 3.2rem);
+		font-weight: 900;
+	}
+	.log p {
+		margin: 0 0 0.9em;
+	}
+	nav {
+		margin-top: 1.6em;
+		padding-top: 1em;
+		border-top: 1px solid var(--line-2);
+	}
+</style>
