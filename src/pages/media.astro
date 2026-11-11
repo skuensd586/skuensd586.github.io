@@ -32,11 +32,37 @@ const updated = data.updated ? new Date(data.updated) : null;
 // ---------- 统计 ----------
 const done = items.filter((i) => i.status === 'done');
 const rated = done.filter((i) => i.rating);
-const avg = rated.length ? rated.reduce((s, i) => s + i.rating!, 0) / rated.length : 0;
 const dist = [5, 4, 3, 2, 1].map((n) => ({ n, c: rated.filter((i) => i.rating === n).length }));
 const distMax = Math.max(1, ...dist.map((d) => d.c));
 const thisYear = new Date().getFullYear();
 const doneThisYear = done.filter((i) => new Date(i.date).getFullYear() === thisYear).length;
+
+// ---------- 标记日历：最近 53 周，一格一天，越深表示当天标记越多 ----------
+// 日期一律按北京时间归日；「今天」取构建当天（站点每天自动重新构建）。
+const dayKey = (d: Date) => d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' }); // YYYY-MM-DD
+const perDay = new Map<string, string[]>();
+for (const i of items) {
+	const k = dayKey(new Date(i.date));
+	perDay.set(k, [...(perDay.get(k) ?? []), i.title]);
+}
+const WEEKS = 53;
+const today = new Date(`${dayKey(new Date())}T00:00:00Z`);
+const start = new Date(today);
+start.setUTCDate(today.getUTCDate() - ((today.getUTCDay() + 6) % 7) - (WEEKS - 1) * 7); // 53 周前的周一
+const level = (n: number) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : 4);
+const weeks = Array.from({ length: WEEKS }, (_, w) => {
+	const days = Array.from({ length: 7 }, (_, d) => {
+		const dt = new Date(start);
+		dt.setUTCDate(start.getUTCDate() + w * 7 + d);
+		const key = dt.toISOString().slice(0, 10);
+		const titles = perDay.get(key) ?? [];
+		return { key, n: titles.length, lv: level(titles.length), future: dt > today, titles, month: dt.getUTCMonth() };
+	});
+	return { days, month: days[0].month };
+});
+// 月份标签：只在月份变化的那一周上方显示
+const monthLabel = (w: number) => (w === 0 || weeks[w].month !== weeks[w - 1].month ? `${weeks[w].month + 1}月` : '');
+const activeDays = [...perDay.keys()].filter((k) => k >= weeks[0].days[0].key).length;
 ---
 
 <Base title={`书影音 · ${SITE_TITLE}`} description="我在豆瓣上标记的书、电影和音乐，每天自动同步。">
@@ -66,13 +92,6 @@ const doneThisYear = done.filter((i) => new Date(i.date).getFullYear() === thisY
 							<dt class="label">{thisYear}　今年</dt>
 							<dd>{doneThisYear}</dd>
 						</div>
-						<div>
-							<dt class="label">Avg　平均评分</dt>
-							<dd>
-								{avg ? avg.toFixed(1) : '—'}
-								<small>/ 5</small>
-							</dd>
-						</div>
 					</dl>
 					<ul class="dist" aria-label="评分分布">
 						{dist.map((d) => (
@@ -85,6 +104,32 @@ const doneThisYear = done.filter((i) => new Date(i.date).getFullYear() === thisY
 							</li>
 						))}
 					</ul>
+
+					<div class="cal">
+						<p class="cal-head">
+							<span class="label">Field Notes　·　标记日历</span>
+							<span class="check">[过去一年里有 {activeDays} 天留下了记录]</span>
+						</p>
+						<div class="heat-scroll" data-heat>
+							<div class="heat" role="img" aria-label={`过去一年的标记日历，共 ${activeDays} 天有记录`}>
+								{weeks.map((wk, w) => (
+									<div class="wk">
+										<span class="mo">{monthLabel(w)}</span>
+										{wk.days.map((d) =>
+											d.future ? (
+												<i class="void" />
+											) : (
+												<i class={`l${d.lv}`} title={d.n ? `${d.key}　${d.n} 条：${d.titles.join('、')}` : d.key} />
+											),
+										)}
+									</div>
+								))}
+							</div>
+						</div>
+						<p class="legend label" aria-hidden="true">
+							少 <i class="l0" /><i class="l1" /><i class="l2" /><i class="l3" /><i class="l4" /> 多
+						</p>
+					</div>
 				</section>
 			)
 		}
@@ -153,6 +198,10 @@ const doneThisYear = done.filter((i) => new Date(i.date).getFullYear() === thisY
 </Base>
 
 <script>
+	// 窄屏下日历可横向滚动，默认停在最右边（最近的日子）
+	const heat = document.querySelector<HTMLElement>('[data-heat]');
+	if (heat) heat.scrollLeft = heat.scrollWidth;
+
 	const state = { type: 'all', status: 'all' };
 	const items = [...document.querySelectorAll<HTMLElement>('.item')];
 	const none = document.querySelector<HTMLElement>('.none');
@@ -194,9 +243,106 @@ const doneThisYear = done.filter((i) => new Date(i.date).getFullYear() === thisY
 		padding: 26px 30px;
 		margin-bottom: 36px;
 	}
+	/* ---------- 标记日历 ---------- */
+	.cal {
+		grid-column: 1 / -1;
+		padding-top: 22px;
+		border-top: 1px solid var(--line);
+		min-width: 0;
+	}
+	.cal-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 4px 16px;
+		margin: 0 0 14px;
+	}
+	.cal-head .label {
+		font-size: 0.7rem;
+	}
+	.heat-scroll {
+		overflow-x: auto;
+		scrollbar-width: thin;
+		scrollbar-color: var(--line-2) transparent;
+		padding-bottom: 6px;
+	}
+	.heat {
+		--cell: 13px;
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: var(--cell);
+		gap: 4px;
+		width: max-content;
+		margin-inline: auto;
+	}
+	.wk {
+		display: grid;
+		grid-template-rows: 16px repeat(7, var(--cell));
+		gap: 4px;
+	}
+	.mo {
+		font-family: var(--font-display);
+		font-size: 0.66rem;
+		letter-spacing: 0.06em;
+		color: var(--ink-3);
+		white-space: nowrap;
+		line-height: 16px;
+	}
+	.heat i,
+	.legend i {
+		display: block;
+		width: var(--cell, 13px);
+		height: var(--cell, 13px);
+		background: rgba(216, 209, 191, 0.06);
+		box-shadow: inset 0 0 0 1px rgba(216, 209, 191, 0.05);
+		transition: transform 0.2s var(--ease-out);
+	}
+	.heat i.void {
+		visibility: hidden;
+	}
+	.heat i:not(.l0):hover {
+		transform: scale(1.35);
+	}
+	/* 四档深浅：从一点余烬到烧透的橙 */
+	.heat i.l1,
+	.legend i.l1 {
+		background: color-mix(in srgb, var(--orange) 30%, var(--panel));
+	}
+	.heat i.l2,
+	.legend i.l2 {
+		background: color-mix(in srgb, var(--orange) 55%, var(--panel));
+	}
+	.heat i.l3,
+	.legend i.l3 {
+		background: color-mix(in srgb, var(--orange) 82%, var(--panel));
+	}
+	.heat i.l4,
+	.legend i.l4 {
+		background: var(--orange-hi);
+		box-shadow: 0 0 10px color-mix(in srgb, var(--orange) 60%, transparent);
+	}
+	.legend {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 4px;
+		margin: 10px 0 0;
+		font-size: 0.68rem;
+	}
+	.legend i {
+		width: 11px;
+		height: 11px;
+	}
+	.legend i:first-of-type {
+		margin-left: 6px;
+	}
+	.legend i:last-of-type {
+		margin-right: 6px;
+	}
+
 	.nums {
 		display: grid;
-		grid-template-columns: repeat(4, auto);
+		grid-template-columns: repeat(3, auto);
 		justify-content: space-between;
 		gap: 16px;
 		margin: 0;

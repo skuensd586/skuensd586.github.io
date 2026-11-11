@@ -14,6 +14,7 @@ export const NAV = [
 	{ name: '文章', en: 'Journal', path: 'blog/' },
 	{ name: '思维内阁', en: 'Thoughts', path: 'thoughts/' },
 	{ name: '书影音', en: 'Inventory', path: 'media/' },
+	{ name: '旅行', en: 'Field Map', path: 'travel/' },
 	{ name: '关于', en: 'Character', path: 'about/' },
 ] as const;
 

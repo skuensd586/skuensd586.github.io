@@ -1,0 +1,264 @@
+---
+import { getImage, Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { SITE_TITLE, url } from '../../consts';
+import { formatCoord, getPlaces } from '../../lib/travel';
+
+export async function getStaticPaths() {
+	const places = await getPlaces();
+	return places.map((place, i) => ({
+		params: { slug: place.id },
+		props: { place, index: i, prev: places[i - 1] ?? null, next: places[i + 1] ?? null },
+	}));
+}
+
+const { place, index, prev, next } = Astro.props;
+const { Content } = await render(place);
+
+// 每张照片准备一张大图，给点开后的查看器用
+const photos = await Promise.all(
+	place.photos.map(async (ph, i) => ({
+		...ph,
+		alt: `${place.data.title}，第 ${i + 1} 张`,
+		full: (await getImage({ src: ph.src, width: Math.min(ph.src.width, 2000) })).src,
+	})),
+);
+const date = place.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Shanghai' });
+---
+
+<Base title={`${place.data.title} · 旅行 · ${SITE_TITLE}`} description={`${place.data.title}的照片，${date}。`}>
+	<main class="container">
+		<header class="page-head">
+			<span class="label reveal">
+				Location {String(index + 1).padStart(2, '0')}　·　{formatCoord(place.data.lat, place.data.lng)}
+			</span>
+			<h1 class="reveal" style="--d:.08s">{place.data.title}</h1>
+			<p class="lede reveal" style="--d:.16s">{date}　·　{photos.length} 张照片</p>
+		</header>
+
+		<div class="note reveal" data-pagefind-body>
+			<h2 class="sr-only">{place.data.title}</h2>
+			<Content />
+		</div>
+
+		{
+			photos.length > 0 ? (
+				<ul class="wall" data-wall>
+					{photos.map((ph, i) => (
+						<li class="reveal" style={`--d:${Math.min(i, 8) * 0.05}s`}>
+							<a href={ph.full} data-i={i} aria-label={`查看大图：${ph.alt}`}>
+								<Image src={ph.src} alt={ph.alt} widths={[400, 720, 1080]} sizes="(max-width: 640px) 100vw, (max-width: 1000px) 50vw, 340px" loading={i < 3 ? 'eager' : 'lazy'} />
+								<span class="idx">{String(i + 1).padStart(2, '0')}</span>
+							</a>
+						</li>
+					))}
+				</ul>
+			) : (
+				<p class="empty panel">
+					这里还没有照片。把图片放进 <code>src/content/travel/{place.id}/</code>，和 <code>index.md</code> 放在一起。
+				</p>
+			)
+		}
+
+		<nav class="foot" aria-label="继续">
+			{prev && <a class="opt" href={url(`travel/${prev.id}/`)}><span class="n">1.</span>— 上一站：{prev.data.title}</a>}
+			{next && <a class="opt" href={url(`travel/${next.id}/`)}><span class="n">{prev ? 2 : 1}.</span>— 下一站：{next.data.title}</a>}
+			<a class="opt" href={url('travel/')}><span class="n">{[prev, next].filter(Boolean).length + 1}.</span>— 回到地图。[离开]</a>
+		</nav>
+	</main>
+
+	<!-- 大图查看器 -->
+	<dialog class="viewer" data-viewer aria-label="照片查看器">
+		<img data-big alt="" />
+		<p class="cap label" data-cap></p>
+		<button class="nav-btn prev" data-prev aria-label="上一张">‹</button>
+		<button class="nav-btn next" data-next aria-label="下一张">›</button>
+		<button class="close label" data-close>关闭 [Esc]</button>
+	</dialog>
+</Base>
+
+<script>
+	const wall = document.querySelector<HTMLElement>('[data-wall]');
+	const dlg = document.querySelector<HTMLDialogElement>('[data-viewer]');
+	if (wall && dlg) {
+		const links = [...wall.querySelectorAll<HTMLAnchorElement>('a[data-i]')];
+		const big = dlg.querySelector<HTMLImageElement>('[data-big]')!;
+		const cap = dlg.querySelector<HTMLElement>('[data-cap]')!;
+		let cur = 0;
+
+		const show = (i: number) => {
+			cur = (i + links.length) % links.length;
+			const a = links[cur];
+			big.src = a.href;
+			big.alt = a.querySelector('img')?.alt ?? '';
+			cap.textContent = `${String(cur + 1).padStart(2, '0')} / ${String(links.length).padStart(2, '0')}`;
+		};
+
+		wall.addEventListener('click', (e) => {
+			const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[data-i]');
+			if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return; // 保留「在新标签页打开」
+			e.preventDefault();
+			show(Number(a.dataset.i));
+			dlg.showModal();
+		});
+		dlg.querySelector('[data-prev]')!.addEventListener('click', () => show(cur - 1));
+		dlg.querySelector('[data-next]')!.addEventListener('click', () => show(cur + 1));
+		dlg.querySelector('[data-close]')!.addEventListener('click', () => dlg.close());
+		dlg.addEventListener('click', (e) => e.target === dlg && dlg.close()); // 点背景关闭
+		dlg.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowLeft') show(cur - 1);
+			if (e.key === 'ArrowRight') show(cur + 1);
+		});
+		dlg.addEventListener('close', () => links[cur]?.focus());
+	}
+</script>
+
+<style>
+	main {
+		padding-bottom: clamp(64px, 9vw, 120px);
+	}
+	.note {
+		max-width: 720px;
+		margin-bottom: 2.4em;
+		color: var(--ink);
+	}
+	.note :global(p:last-child) {
+		margin-bottom: 0;
+	}
+
+	/* 照片墙：瀑布流 */
+	.wall {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		columns: 3;
+		column-gap: 16px;
+	}
+	.wall li {
+		break-inside: avoid;
+		margin-bottom: 16px;
+	}
+	.wall a {
+		position: relative;
+		display: block;
+		border: 1px solid var(--line-2);
+		background: var(--panel);
+		overflow: hidden;
+		cursor: zoom-in;
+	}
+	.wall :global(img) {
+		display: block;
+		width: 100%;
+		height: auto;
+		filter: saturate(0.9);
+		transition:
+			transform 0.9s var(--ease-out),
+			filter 0.4s var(--ease);
+	}
+	.wall a:hover :global(img) {
+		transform: scale(1.04);
+		filter: none;
+	}
+	.wall a:hover {
+		border-color: var(--orange);
+	}
+	.idx {
+		position: absolute;
+		left: 0;
+		bottom: 10px;
+		padding: 1px 9px 1px 8px;
+		background: var(--bg);
+		border-left: 3px solid var(--orange);
+		font-family: var(--font-display);
+		font-size: 0.74rem;
+		letter-spacing: 0.14em;
+		color: var(--ink);
+	}
+	.empty {
+		padding: 40px 24px;
+		color: var(--ink-2);
+		text-align: center;
+	}
+	.foot {
+		max-width: 760px;
+		margin-top: 3em;
+		padding-top: 18px;
+		border-top: 1px solid var(--line-2);
+	}
+
+	/* 查看器 */
+	.viewer {
+		width: 100vw;
+		height: 100dvh;
+		max-width: none;
+		max-height: none;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: rgba(8, 12, 12, 0.94);
+		color: var(--ink);
+	}
+	.viewer::backdrop {
+		background: rgba(8, 12, 12, 0.6);
+	}
+	.viewer[open] {
+		display: grid;
+		place-items: center;
+	}
+	.viewer img {
+		max-width: min(92vw, 1600px);
+		max-height: 84dvh;
+		border: 1px solid var(--line-2);
+		box-shadow: var(--shadow);
+	}
+	.cap {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 18px;
+		margin: 0;
+		text-align: center;
+	}
+	.viewer button {
+		position: absolute;
+		border: 0;
+		background: none;
+		color: var(--orange);
+		cursor: pointer;
+		transition: color 0.2s var(--ease);
+	}
+	.viewer button:hover {
+		color: var(--orange-hi);
+	}
+	.nav-btn {
+		top: 50%;
+		transform: translateY(-50%);
+		padding: 20px 18px;
+		font-size: 3rem;
+		line-height: 1;
+	}
+	.prev {
+		left: 6px;
+	}
+	.next {
+		right: 6px;
+	}
+	.close {
+		top: 16px;
+		right: 20px;
+		padding: 8px;
+		color: var(--orange);
+	}
+
+	@media (max-width: 1000px) {
+		.wall {
+			columns: 2;
+		}
+	}
+	@media (max-width: 640px) {
+		.wall {
+			columns: 1;
+		}
+	}
+</style>

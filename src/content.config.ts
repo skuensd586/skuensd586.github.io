@@ -35,4 +35,22 @@ const thoughts = defineCollection({
 	}),
 });
 
-export const collections = { blog, thoughts };
+// 旅行：一个地点一个文件夹，里面是 index.md 和这次旅行的照片。
+const travel = defineCollection({
+	loader: glob({
+		base: './src/content/travel',
+		pattern: '*/index.md',
+		// 用文件夹名作 id（也就是网址里的那一段）
+		generateId: ({ entry }) => entry.split('/')[0],
+	}),
+	schema: z.object({
+		title: z.string(),
+		date: z.coerce.date(),
+		/** 纬度（北纬为正）与经度（东经为正） */
+		lat: z.number().min(-90).max(90),
+		lng: z.number().min(-180).max(180),
+		draft: z.boolean().default(false),
+	}),
+});
+
+export const collections = { blog, thoughts, travel };

@@ -1,0 +1,297 @@
+---
+import { geoGraticule, geoMercator, geoPath } from 'd3-geo';
+import { feature } from 'topojson-client';
+import land50 from 'world-atlas/land-50m.json';
+import Base from '../../layouts/Base.astro';
+import { SITE_TITLE, url } from '../../consts';
+import { formatCoord, getPlaces } from '../../lib/travel';
+
+const places = await getPlaces(); // 按时间从早到晚
+const photoCount = places.reduce((n, p) => n + p.photos.length, 0);
+
+// ---------- 地图 ----------
+// 只画陆地与海，不画任何国界。数据：Natural Earth（公有领域），经 world-atlas 打包。
+const W = 1600;
+const H = 1000;
+
+// 视野：框住所有地点并留出余量；没有地点时显示整个世界。
+let frame: [[number, number], [number, number]] = [
+	[-165, -52],
+	[175, 74],
+];
+let spanX = 340;
+if (places.length > 0) {
+	const lngs = places.map((p) => p.data.lng);
+	const lats = places.map((p) => p.data.lat);
+	const cx = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+	const cy = (Math.min(...lats) + Math.max(...lats)) / 2;
+	spanX = Math.max((Math.max(...lngs) - Math.min(...lngs)) * 1.55, 20);
+	const spanY = Math.max((Math.max(...lats) - Math.min(...lats)) * 1.55, 12);
+	const clamp = (v: number) => Math.max(-78, Math.min(80, v));
+	frame = [
+		[cx - spanX / 2, clamp(cy - spanY / 2)],
+		[cx + spanX / 2, clamp(cy + spanY / 2)],
+	];
+}
+
+const projection = geoMercator()
+	.fitExtent(
+		[
+			[70, 70],
+			[W - 70, H - 70],
+		],
+		{ type: 'MultiPoint', coordinates: frame },
+	)
+	.clipExtent([
+		[-30, -30],
+		[W + 30, H + 30],
+	]);
+const path = geoPath(projection).digits(1);
+
+const landD = path(feature(land50 as any, (land50 as any).objects.land) as any) ?? '';
+const step = spanX > 120 ? 30 : spanX > 45 ? 10 : 5;
+const gratD = path(geoGraticule().step([step, step])()) ?? '';
+const routeD =
+	places.length > 1 ? (path({ type: 'LineString', coordinates: places.map((p) => [p.data.lng, p.data.lat]) }) ?? '') : '';
+
+const pins = places.map((p, i) => {
+	const [x, y] = projection([p.data.lng, p.data.lat])!;
+	return { p, i, x, y, left: x > W * 0.72 };
+});
+
+const fmtDate = (d: Date) => d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', timeZone: 'Asia/Shanghai' });
+---
+
+<Base title={`旅行 · ${SITE_TITLE}`} description="去过的地方。点地图上的标记，看那里的照片。">
+	<main class="container">
+		<header class="page-head">
+			<span class="label reveal">Field Map　·　行迹</span>
+			<h1 class="reveal" style="--d:.08s">去过的地方</h1>
+			<p class="lede reveal" style="--d:.16s">
+				{places.length > 0 ? `${places.length} 处地点，${photoCount} 张照片。点地图上的标记，看那里的照片。` : '地图还是空的。'}
+			</p>
+		</header>
+
+		<div class="map-scroll reveal" data-map-scroll>
+			<figure class="map panel">
+				<svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label="旅行地图">
+					<defs>
+						<filter id="mp-coast" x="-2%" y="-2%" width="104%" height="104%">
+							<feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="5" result="n"></feTurbulence>
+							<feDisplacementMap in="SourceGraphic" in2="n" scale="7"></feDisplacementMap>
+						</filter>
+						<!-- 海面的横向笔触 -->
+						<filter id="mp-sea" x="0" y="0" width="100%" height="100%">
+							<feTurbulence type="fractalNoise" baseFrequency="0.004 0.07" numOctaves="3" seed="8"></feTurbulence>
+							<feColorMatrix values="0 0 0 0 .25  0 0 0 0 .56  0 0 0 0 .54  0 0 0 .9 -.28"></feColorMatrix>
+						</filter>
+						<!-- 陆地上的颜料颗粒 -->
+						<filter id="mp-grain" x="0" y="0" width="100%" height="100%">
+							<feTurbulence type="fractalNoise" baseFrequency="0.02 0.035" numOctaves="3" seed="2"></feTurbulence>
+							<feColorMatrix values="0 0 0 0 .83  0 0 0 0 .66  0 0 0 0 .34  0 0 0 .8 -.3"></feColorMatrix>
+						</filter>
+						<clipPath id="mp-land"><path d={landD}></path></clipPath>
+					</defs>
+
+					<rect width={W} height={H} fill="#0c1a1b"></rect>
+					<rect width={W} height={H} filter="url(#mp-sea)" opacity=".6"></rect>
+					<path class="grat" d={gratD}></path>
+
+					<g filter="url(#mp-coast)">
+						<path d={landD} fill="none" stroke="#3f8f8a" stroke-width="14" stroke-linejoin="round" opacity=".16"></path>
+						<path d={landD} fill="#25443e"></path>
+						<g clip-path="url(#mp-land)"><rect width={W} height={H} filter="url(#mp-grain)" opacity=".26"></rect></g>
+						<path d={landD} fill="none" stroke="#d3a857" stroke-width="1.6" stroke-linejoin="round" opacity=".75"></path>
+					</g>
+
+					{routeD && <path class="route" d={routeD}></path>}
+
+					{
+						pins.map(({ p, i, x, y, left }) => (
+							<a class="pin" href={url(`travel/${p.id}/`)} aria-label={`${p.data.title}，${p.photos.length} 张照片`}>
+								<g transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
+									<circle class="hit" r="38" />
+									<circle class="ring" r="15" style={`animation-delay:${i * 0.5}s`} />
+									<rect class="dot" x="-8" y="-8" width="16" height="16" transform="rotate(45)" />
+									<g class="tag" transform={`translate(${left ? -24 : 24} 0)`} text-anchor={left ? 'end' : 'start'}>
+										<text class="no" y="-10">{String(i + 1).padStart(2, '0')}</text>
+										<text class="name" y="18">{p.data.title}</text>
+									</g>
+								</g>
+							</a>
+						))
+					}
+				</svg>
+				<figcaption class="label">陆地轮廓：Natural Earth　·　本图只示意海陆，不表示任何边界</figcaption>
+			</figure>
+		</div>
+
+		<section class="list">
+			<div class="section-title reveal">
+				<span class="label">Itinerary</span>
+				<h2>行程</h2>
+			</div>
+			{
+				places.length > 0 ? (
+					<nav aria-label="地点">
+						{places.map((p, i) => (
+							<a class="opt reveal" style={`--d:${Math.min(i, 8) * 0.05}s`} href={url(`travel/${p.id}/`)}>
+								<span class="n">{i + 1}.</span>— {p.data.title}
+								<span class="check">
+									[{fmtDate(p.data.date)}　·　{p.photos.length} 张　·　{formatCoord(p.data.lat, p.data.lng)}]
+								</span>
+							</a>
+						))}
+					</nav>
+				) : (
+					<p class="empty">
+						还没有地点。运行 <code>npm run new:place "地名"</code>，再把照片放进生成的文件夹。
+					</p>
+				)
+			}
+		</section>
+	</main>
+</Base>
+
+<script>
+	// 窄屏下地图可横向滚动：默认把第一个标记滚到中间
+	const sc = document.querySelector<HTMLElement>('[data-map-scroll]');
+	const pin = sc?.querySelector<SVGGraphicsElement>('.pin');
+	if (sc && pin && sc.scrollWidth > sc.clientWidth) {
+		const r = pin.getBoundingClientRect();
+		const s = sc.getBoundingClientRect();
+		sc.scrollLeft += r.left + r.width / 2 - (s.left + s.width / 2);
+	}
+</script>
+
+<style>
+	main {
+		padding-bottom: clamp(64px, 9vw, 120px);
+	}
+	.map-scroll {
+		overflow-x: auto;
+		margin-bottom: clamp(40px, 6vw, 72px);
+		scrollbar-width: thin;
+		scrollbar-color: var(--line-2) transparent;
+	}
+	.map {
+		margin: 0;
+		min-width: 760px;
+		padding: 10px;
+	}
+	.map svg {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	figcaption {
+		padding: 10px 6px 2px;
+		font-size: 0.66rem;
+		letter-spacing: 0.12em;
+		color: var(--ink-3);
+	}
+
+	.grat {
+		fill: none;
+		stroke: rgba(216, 209, 191, 0.07);
+		stroke-width: 1;
+	}
+	/* 路线：按时间先后连起来的虚线，缓慢向前走 */
+	.route {
+		fill: none;
+		stroke: var(--ink);
+		stroke-width: 2.2;
+		stroke-dasharray: 3 11;
+		stroke-linecap: round;
+		opacity: 0.6;
+		animation: march 3s linear infinite;
+	}
+	@keyframes march {
+		to {
+			stroke-dashoffset: -28;
+		}
+	}
+
+	.pin {
+		cursor: pointer;
+	}
+	.hit {
+		fill: transparent;
+	}
+	.dot {
+		fill: var(--orange);
+		stroke: #140b06;
+		stroke-width: 2.5;
+		transition: fill 0.2s var(--ease);
+	}
+	.ring {
+		fill: none;
+		stroke: var(--orange);
+		stroke-width: 2;
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: ping 2.8s var(--ease-out) infinite;
+	}
+	@keyframes ping {
+		from {
+			transform: scale(0.6);
+			opacity: 0.9;
+		}
+		to {
+			transform: scale(2.4);
+			opacity: 0;
+		}
+	}
+	.tag text {
+		paint-order: stroke;
+		stroke: #0c1a1b;
+		stroke-width: 7px;
+		stroke-linejoin: round;
+	}
+	.no {
+		font-family: var(--font-display);
+		font-size: 19px;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		fill: var(--orange);
+	}
+	.name {
+		font-family: var(--font-head);
+		font-size: 27px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		fill: var(--ink);
+		transition: fill 0.2s var(--ease);
+	}
+	.pin:hover .dot,
+	.pin:focus-visible .dot {
+		fill: var(--orange-hi);
+	}
+	.pin:hover .name,
+	.pin:focus-visible .name {
+		fill: var(--orange-hi);
+	}
+	.pin:focus-visible {
+		outline: none;
+	}
+	.pin:focus-visible .hit {
+		stroke: var(--orange-hi);
+		stroke-width: 2;
+	}
+
+	.list {
+		max-width: 860px;
+	}
+	.section-title .label {
+		color: var(--orange);
+	}
+	.list .opt {
+		font-size: 1.1rem;
+	}
+	.list .check {
+		margin-left: 0.6em;
+	}
+	.empty {
+		color: var(--ink-2);
+	}
+</style>
