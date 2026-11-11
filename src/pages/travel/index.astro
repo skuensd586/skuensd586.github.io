@@ -1,62 +1,20 @@
 ---
-import { geoGraticule, geoMercator, geoPath } from 'd3-geo';
-import { feature } from 'topojson-client';
-import land50 from 'world-atlas/land-50m.json';
+import land110 from 'world-atlas/land-110m.json';
 import Base from '../../layouts/Base.astro';
 import { SITE_TITLE, url } from '../../consts';
 import { formatCoord, getPlaces } from '../../lib/travel';
+import { graticulePath, H, landPath, linePath, projection, W } from '../../lib/worldmap';
 
 const places = await getPlaces(); // 按时间从早到晚
 const photoCount = places.reduce((n, p) => n + p.photos.length, 0);
 
-// ---------- 地图 ----------
-// 只画陆地与海，不画任何国界。数据：Natural Earth（公有领域），经 world-atlas 打包。
-const W = 1600;
-const H = 1000;
-
-// 视野：框住所有地点并留出余量；没有地点时显示整个世界。
-let frame: [[number, number], [number, number]] = [
-	[-165, -52],
-	[175, 74],
-];
-let spanX = 340;
-if (places.length > 0) {
-	const lngs = places.map((p) => p.data.lng);
-	const lats = places.map((p) => p.data.lat);
-	const cx = (Math.min(...lngs) + Math.max(...lngs)) / 2;
-	const cy = (Math.min(...lats) + Math.max(...lats)) / 2;
-	spanX = Math.max((Math.max(...lngs) - Math.min(...lngs)) * 1.55, 20);
-	const spanY = Math.max((Math.max(...lats) - Math.min(...lats)) * 1.55, 12);
-	const clamp = (v: number) => Math.max(-78, Math.min(80, v));
-	frame = [
-		[cx - spanX / 2, clamp(cy - spanY / 2)],
-		[cx + spanX / 2, clamp(cy + spanY / 2)],
-	];
-}
-
-const projection = geoMercator()
-	.fitExtent(
-		[
-			[70, 70],
-			[W - 70, H - 70],
-		],
-		{ type: 'MultiPoint', coordinates: frame },
-	)
-	.clipExtent([
-		[-30, -30],
-		[W + 30, H + 30],
-	]);
-const path = geoPath(projection).digits(1);
-
-const landD = path(feature(land50 as any, (land50 as any).objects.land) as any) ?? '';
-const step = spanX > 120 ? 30 : spanX > 45 ? 10 : 5;
-const gratD = path(geoGraticule().step([step, step])()) ?? '';
-const routeD =
-	places.length > 1 ? (path({ type: 'LineString', coordinates: places.map((p) => [p.data.lng, p.data.lat]) }) ?? '') : '';
+// 页面先内嵌粗略的世界轮廓（约 50KB）；放大后由脚本换成精细轮廓（travel/land.json）。
+const landD = landPath(land110);
+const routeD = places.length > 1 ? linePath(places.map((p) => [p.data.lng, p.data.lat])) : '';
 
 const pins = places.map((p, i) => {
 	const [x, y] = projection([p.data.lng, p.data.lat])!;
-	return { p, i, x, y, left: x > W * 0.72 };
+	return { p, i, x, y, left: x > W * 0.86 };
 });
 
 const fmtDate = (d: Date) => d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', timeZone: 'Asia/Shanghai' });
@@ -72,59 +30,58 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-CN', { year: 'numeric', mo
 			</p>
 		</header>
 
-		<div class="map-scroll reveal" data-map-scroll>
-			<figure class="map panel">
-				<svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label="旅行地图">
+		<figure class="map panel reveal">
+			<div class="stage">
+				<svg
+					viewBox={`0 0 ${W} ${H}`}
+					preserveAspectRatio="xMidYMid slice"
+					role="application"
+					aria-label="世界地图。拖动平移，按住 Ctrl 滚动或双指捏合缩放，方向键与加减键也可操作。"
+					tabindex="0"
+					data-map
+					data-w={W}
+					data-h={H}
+					data-land={url('travel/land.json')}
+				>
 					<defs>
-						<filter id="mp-coast" x="-2%" y="-2%" width="104%" height="104%">
-							<feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="5" result="n"></feTurbulence>
-							<feDisplacementMap in="SourceGraphic" in2="n" scale="7"></feDisplacementMap>
-						</filter>
-						<!-- 海面的横向笔触 -->
-						<filter id="mp-sea" x="0" y="0" width="100%" height="100%">
-							<feTurbulence type="fractalNoise" baseFrequency="0.004 0.07" numOctaves="3" seed="8"></feTurbulence>
-							<feColorMatrix values="0 0 0 0 .25  0 0 0 0 .56  0 0 0 0 .54  0 0 0 .9 -.28"></feColorMatrix>
-						</filter>
-						<!-- 陆地上的颜料颗粒 -->
-						<filter id="mp-grain" x="0" y="0" width="100%" height="100%">
-							<feTurbulence type="fractalNoise" baseFrequency="0.02 0.035" numOctaves="3" seed="2"></feTurbulence>
-							<feColorMatrix values="0 0 0 0 .83  0 0 0 0 .66  0 0 0 0 .34  0 0 0 .8 -.3"></feColorMatrix>
-						</filter>
-						<clipPath id="mp-land"><path d={landD}></path></clipPath>
+						<path id="mp-land" d={landD} data-land-path></path>
 					</defs>
-
-					<rect width={W} height={H} fill="#0c1a1b"></rect>
-					<rect width={W} height={H} filter="url(#mp-sea)" opacity=".6"></rect>
-					<path class="grat" d={gratD}></path>
-
-					<g filter="url(#mp-coast)">
-						<path d={landD} fill="none" stroke="#3f8f8a" stroke-width="14" stroke-linejoin="round" opacity=".16"></path>
-						<path d={landD} fill="#25443e"></path>
-						<g clip-path="url(#mp-land)"><rect width={W} height={H} filter="url(#mp-grain)" opacity=".26"></rect></g>
-						<path d={landD} fill="none" stroke="#d3a857" stroke-width="1.6" stroke-linejoin="round" opacity=".75"></path>
-					</g>
-
-					{routeD && <path class="route" d={routeD}></path>}
-
-					{
-						pins.map(({ p, i, x, y, left }) => (
-							<a class="pin" href={url(`travel/${p.id}/`)} aria-label={`${p.data.title}，${p.photos.length} 张照片`}>
-								<g transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
-									<circle class="hit" r="38" />
-									<circle class="ring" r="15" style={`animation-delay:${i * 0.5}s`} />
-									<rect class="dot" x="-8" y="-8" width="16" height="16" transform="rotate(45)" />
-									<g class="tag" transform={`translate(${left ? -24 : 24} 0)`} text-anchor={left ? 'end' : 'start'}>
-										<text class="no" y="-10">{String(i + 1).padStart(2, '0')}</text>
-										<text class="name" y="18">{p.data.title}</text>
+					<g class="world" data-world>
+						<path class="grat" d={graticulePath}></path>
+						<use class="glow" href="#mp-land"></use>
+						<use class="land" href="#mp-land"></use>
+						<use class="coast" href="#mp-land"></use>
+						{routeD && <path class="route" d={routeD}></path>}
+						{
+							pins.map(({ p, i, x, y, left }) => (
+								<a class="pin" href={url(`travel/${p.id}/`)} aria-label={`${p.data.title}，${p.photos.length} 张照片`} data-x={x.toFixed(1)} data-y={y.toFixed(1)}>
+									<g transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
+										<g class="inv">
+											<circle class="hit" r="20" />
+											<circle class="ring" r="9" style={`animation-delay:${i * 0.5}s`} />
+											<rect class="dot" x="-5.5" y="-5.5" width="11" height="11" transform="rotate(45)" />
+											<g class="tag" transform={`translate(${left ? -15 : 15} 0)`} text-anchor={left ? 'end' : 'start'}>
+												<text class="no" y="-5">{String(i + 1).padStart(2, '0')}</text>
+												<text class="name" y="13">{p.data.title}</text>
+											</g>
+										</g>
 									</g>
-								</g>
-							</a>
-						))
-					}
+								</a>
+							))
+						}
+					</g>
 				</svg>
-				<figcaption class="label">陆地轮廓：Natural Earth　·　本图只示意海陆，不表示任何边界</figcaption>
-			</figure>
-		</div>
+
+				<p class="hint label" data-hint>拖动平移　·　Ctrl + 滚轮 / 双指 缩放</p>
+				<div class="ctrl" role="group" aria-label="地图控制">
+					{places.length > 0 && <button type="button" data-act="fit">足迹</button>}
+					<button type="button" data-act="world">世界</button>
+					<button type="button" data-act="in" aria-label="放大">＋</button>
+					<button type="button" data-act="out" aria-label="缩小">－</button>
+				</div>
+			</div>
+			<figcaption class="label">陆地轮廓：Natural Earth　·　本图只示意海陆，不表示任何边界</figcaption>
+		</figure>
 
 		<section class="list">
 			<div class="section-title reveal">
@@ -154,13 +111,232 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-CN', { year: 'numeric', mo
 </Base>
 
 <script>
-	// 窄屏下地图可横向滚动：默认把第一个标记滚到中间
-	const sc = document.querySelector<HTMLElement>('[data-map-scroll]');
-	const pin = sc?.querySelector<SVGGraphicsElement>('.pin');
-	if (sc && pin && sc.scrollWidth > sc.clientWidth) {
-		const r = pin.getBoundingClientRect();
-		const s = sc.getBoundingClientRect();
-		sc.scrollLeft += r.left + r.width / 2 - (s.left + s.width / 2);
+	// 地图的平移与缩放。
+	// 世界图层的变换是 p' = p·k + (tx, ty)，单位是 SVG 的 viewBox 单位；k=1 时正好铺满。
+	const svg = document.querySelector<SVGSVGElement>('[data-map]');
+	if (svg) {
+		const world = svg.querySelector<SVGGElement>('[data-world]')!;
+		const stage = svg.parentElement!;
+		const hint = stage.querySelector<HTMLElement>('[data-hint]')!;
+		const W = Number(svg.dataset.w);
+		const H = Number(svg.dataset.h);
+		const K_MAX = 60;
+		const pins = [...svg.querySelectorAll<SVGAElement>('.pin')].map((el) => ({ el, x: Number(el.dataset.x), y: Number(el.dataset.y) }));
+
+		let k = 1;
+		let tx = 0;
+		let ty = 0;
+
+		/** 当前在屏幕上可见的 viewBox 区域（slice 模式会裁掉一部分），以及 viewBox 单位到像素的比例 */
+		const vis = () => {
+			const r = svg.getBoundingClientRect();
+			const sf = Math.max(r.width / W, r.height / H);
+			const w = r.width / sf;
+			const h = r.height / sf;
+			return { x: (W - w) / 2, y: (H - h) / 2, w, h, sf, r };
+		};
+
+		let animTimer: number | undefined;
+		const apply = (animate = false) => {
+			const v = vis();
+			k = Math.min(K_MAX, Math.max(1, k));
+			// 世界必须盖住可见区域，不露出空白
+			tx = Math.min(v.x, Math.max(v.x + v.w - W * k, tx));
+			ty = Math.min(v.y, Math.max(v.y + v.h - H * k, ty));
+
+			svg.classList.toggle('anim', animate);
+			window.clearTimeout(animTimer);
+			if (animate) animTimer = window.setTimeout(() => svg.classList.remove('anim'), 800);
+
+			world.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
+			// 标记保持固定的屏幕大小：抵消世界的缩放与 viewBox 的缩放
+			svg.style.setProperty('--inv', String(1 / (k * v.sf)));
+
+			// 挤在一起的标记不显示名字，免得叠成一团
+			const px = k * v.sf;
+			for (const a of pins) {
+				const crowded = pins.some((b) => b !== a && Math.hypot((a.x - b.x) * px, (a.y - b.y) * px) < 96);
+				a.el.classList.toggle('crowded', crowded);
+			}
+			if (k >= 2.4) loadDetail();
+		};
+
+		/** 屏幕坐标 → viewBox 坐标 */
+		const toVB = (cx: number, cy: number) => {
+			const v = vis();
+			return [v.x + (cx - v.r.left) / v.sf, v.y + (cy - v.r.top) / v.sf] as const;
+		};
+		const zoomAt = (vx: number, vy: number, factor: number, animate = false) => {
+			const nk = Math.min(K_MAX, Math.max(1, k * factor));
+			const wx = (vx - tx) / k;
+			const wy = (vy - ty) / k;
+			k = nk;
+			tx = vx - wx * k;
+			ty = vy - wy * k;
+			apply(animate);
+		};
+		const zoomCenter = (factor: number) => {
+			const v = vis();
+			zoomAt(v.x + v.w / 2, v.y + v.h / 2, factor, true);
+		};
+		/** 把一组世界坐标点框进视野 */
+		const fit = (pts: { x: number; y: number }[], animate = true, maxK = 14) => {
+			if (pts.length === 0) return;
+			const v = vis();
+			const xs = pts.map((p) => p.x);
+			const ys = pts.map((p) => p.y);
+			const bw = Math.max(Math.max(...xs) - Math.min(...xs), 1);
+			const bh = Math.max(Math.max(...ys) - Math.min(...ys), 1);
+			k = Math.min(maxK, v.w / (bw * 1.9), v.h / (bh * 1.9));
+			k = Math.max(1, k);
+			tx = v.x + v.w / 2 - ((Math.min(...xs) + Math.max(...xs)) / 2) * k;
+			ty = v.y + v.h / 2 - ((Math.min(...ys) + Math.max(...ys)) / 2) * k;
+			apply(animate);
+		};
+		const showWorld = (animate = true) => {
+			const v = vis();
+			k = 1;
+			// 窄屏下世界会被左右裁掉：把足迹的中心放到中间
+			const cx = pins.length ? pins.reduce((s, p) => s + p.x, 0) / pins.length : W / 2;
+			tx = v.x + v.w / 2 - cx;
+			ty = 0;
+			apply(animate);
+		};
+
+		// ---------- 放大后换成精细的海岸线 ----------
+		let detail: 'none' | 'loading' | 'done' = 'none';
+		const loadDetail = async () => {
+			if (detail !== 'none') return;
+			detail = 'loading';
+			try {
+				const res = await fetch(svg.dataset.land!);
+				const { d } = await res.json();
+				svg.querySelector('[data-land-path]')!.setAttribute('d', d);
+				detail = 'done';
+			} catch {
+				detail = 'none'; // 下次放大时再试
+			}
+		};
+
+		// ---------- 指针：单指/鼠标拖动平移，双指捏合缩放 ----------
+		const pointers = new Map<number, { x: number; y: number }>();
+		let moved = 0;
+		let pinch = 0;
+		svg.addEventListener('pointerdown', (e) => {
+			pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+			if (pointers.size === 1) moved = 0;
+			if (pointers.size === 2) {
+				const [a, b] = [...pointers.values()];
+				pinch = Math.hypot(a.x - b.x, a.y - b.y);
+			}
+		});
+		svg.addEventListener('pointermove', (e) => {
+			const prev = pointers.get(e.pointerId);
+			if (!prev) return;
+			const { sf } = vis();
+			if (pointers.size === 1) {
+				const dx = e.clientX - prev.x;
+				const dy = e.clientY - prev.y;
+				moved += Math.abs(dx) + Math.abs(dy);
+				if (moved > 4) {
+					if (!svg.hasPointerCapture(e.pointerId)) svg.setPointerCapture(e.pointerId);
+					svg.classList.add('dragging');
+					tx += dx / sf;
+					ty += dy / sf;
+					apply();
+				}
+				pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+			} else if (pointers.size === 2) {
+				pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+				const [a, b] = [...pointers.values()];
+				const dist = Math.hypot(a.x - b.x, a.y - b.y);
+				const [vx, vy] = toVB((a.x + b.x) / 2, (a.y + b.y) / 2);
+				if (pinch > 0) zoomAt(vx, vy, dist / pinch);
+				pinch = dist;
+				moved = 99;
+			}
+		});
+		const up = (e: PointerEvent) => {
+			pointers.delete(e.pointerId);
+			if (pointers.size < 2) pinch = 0;
+			if (pointers.size === 0) svg.classList.remove('dragging');
+		};
+		svg.addEventListener('pointerup', up);
+		svg.addEventListener('pointercancel', up);
+
+		// 拖动之后松手不算点击；点到挤成一团的标记时，先放大把它们分开
+		svg.addEventListener(
+			'click',
+			(e) => {
+				if (moved > 4) {
+					e.preventDefault();
+					e.stopPropagation();
+					return;
+				}
+				const link = (e.target as Element).closest<SVGAElement>('.pin');
+				if (!link) return;
+				const me = pins.find((p) => p.el === link)!;
+				const px = k * vis().sf;
+				const group = pins.filter((p) => Math.hypot((p.x - me.x) * px, (p.y - me.y) * px) < 26);
+				if (group.length > 1 && k < K_MAX / 2) {
+					e.preventDefault();
+					fit(group, true, 40);
+				}
+			},
+			true,
+		);
+
+		// ---------- 滚轮：按住 Ctrl/⌘（触控板捏合也算）才缩放，否则照常滚动页面 ----------
+		let hintTimer: number | undefined;
+		svg.addEventListener(
+			'wheel',
+			(e) => {
+				if (e.ctrlKey || e.metaKey) {
+					e.preventDefault();
+					const [vx, vy] = toVB(e.clientX, e.clientY);
+					// 鼠标滚轮一格的 deltaY 约 100，触控板捏合只有个位数：分别给合适的灵敏度
+					const speed = Math.abs(e.deltaY) >= 50 ? 0.0026 : 0.012;
+					zoomAt(vx, vy, Math.exp(-e.deltaY * speed));
+				} else {
+					hint.classList.add('on');
+					window.clearTimeout(hintTimer);
+					hintTimer = window.setTimeout(() => hint.classList.remove('on'), 1600);
+				}
+			},
+			{ passive: false },
+		);
+		svg.addEventListener('dblclick', (e) => {
+			if ((e.target as Element).closest('.pin')) return;
+			const [vx, vy] = toVB(e.clientX, e.clientY);
+			zoomAt(vx, vy, 2, true);
+		});
+
+		// ---------- 键盘与按钮 ----------
+		svg.addEventListener('keydown', (e) => {
+			const step = 80 / vis().sf;
+			if (e.key === '+' || e.key === '=') zoomCenter(1.6);
+			else if (e.key === '-' || e.key === '_') zoomCenter(1 / 1.6);
+			else if (e.key === '0') showWorld();
+			else if (e.key === 'ArrowLeft') (tx += step), apply(true);
+			else if (e.key === 'ArrowRight') (tx -= step), apply(true);
+			else if (e.key === 'ArrowUp') (ty += step), apply(true);
+			else if (e.key === 'ArrowDown') (ty -= step), apply(true);
+			else return;
+			e.preventDefault();
+		});
+		stage.querySelectorAll<HTMLButtonElement>('[data-act]').forEach((btn) =>
+			btn.addEventListener('click', () => {
+				const act = btn.dataset.act;
+				if (act === 'in') zoomCenter(1.8);
+				else if (act === 'out') zoomCenter(1 / 1.8);
+				else if (act === 'world') showWorld();
+				else if (act === 'fit') fit(pins);
+			}),
+		);
+
+		window.addEventListener('resize', () => apply());
+		showWorld(false);
+		svg.classList.add('ready');
 	}
 </script>
 
@@ -168,21 +344,48 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-CN', { year: 'numeric', mo
 	main {
 		padding-bottom: clamp(64px, 9vw, 120px);
 	}
-	.map-scroll {
-		overflow-x: auto;
-		margin-bottom: clamp(40px, 6vw, 72px);
-		scrollbar-width: thin;
-		scrollbar-color: var(--line-2) transparent;
-	}
 	.map {
-		margin: 0;
-		min-width: 760px;
+		margin: 0 0 clamp(40px, 6vw, 72px);
 		padding: 10px;
+	}
+	.stage {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+		/* 海：深色底上几道横向的笔触（静态背景，不随地图缩放重绘） */
+		background:
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.004 .07' numOctaves='3' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .56 0 0 0 0 .54 0 0 0 .9 -.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='.55'/%3E%3C/svg%3E"),
+			#0c1a1b;
 	}
 	.map svg {
 		display: block;
 		width: 100%;
-		height: auto;
+		height: 100%;
+		cursor: grab;
+		/* 单指上下滑动仍然滚动页面；左右拖动和双指手势交给地图 */
+		touch-action: pan-y;
+		user-select: none;
+		-webkit-user-select: none;
+		outline: none;
+	}
+	.map svg:global(.dragging) {
+		cursor: grabbing;
+	}
+	.map svg:focus-visible {
+		box-shadow: inset 0 0 0 2px var(--orange-hi);
+	}
+	/* 注意：不要给 .world 加 will-change。那会让浏览器按初始分辨率栅格化后再放大，
+	   放大时海岸线和文字都会发糊。 */
+	.world {
+		transform-origin: 0 0;
+	}
+	/* <use> 不会把 vector-effect 传给被引用的路径，所以直接设在路径上 */
+	#mp-land {
+		vector-effect: non-scaling-stroke;
+	}
+	.map svg:global(.anim) .world,
+	.map svg:global(.anim) .inv {
+		transition: transform 0.75s var(--ease-out);
 	}
 	figcaption {
 		padding: 10px 6px 2px;
@@ -191,27 +394,52 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-CN', { year: 'numeric', mo
 		color: var(--ink-3);
 	}
 
-	.grat {
+	/* 所有线条都用固定的屏幕粗细，放大也不会变粗 */
+	.grat,
+	.glow,
+	.coast,
+	.route {
 		fill: none;
+		vector-effect: non-scaling-stroke;
+	}
+	.grat {
 		stroke: rgba(216, 209, 191, 0.07);
-		stroke-width: 1;
+		stroke-width: 1px;
+	}
+	.glow {
+		stroke: #3f8f8a;
+		stroke-width: 9px;
+		stroke-linejoin: round;
+		opacity: 0.16;
+	}
+	.land {
+		fill: #25443e;
+	}
+	.coast {
+		stroke: #d3a857;
+		stroke-width: 1.1px;
+		stroke-linejoin: round;
+		opacity: 0.8;
 	}
 	/* 路线：按时间先后连起来的虚线，缓慢向前走 */
 	.route {
-		fill: none;
 		stroke: var(--ink);
-		stroke-width: 2.2;
-		stroke-dasharray: 3 11;
+		stroke-width: 1.6px;
+		stroke-dasharray: 2 7;
 		stroke-linecap: round;
-		opacity: 0.6;
+		opacity: 0.65;
 		animation: march 3s linear infinite;
 	}
 	@keyframes march {
 		to {
-			stroke-dashoffset: -28;
+			stroke-dashoffset: -18;
 		}
 	}
 
+	/* 标记：内部以屏幕像素为单位绘制，--inv 抵消地图的缩放 */
+	.inv {
+		transform: scale(var(--inv, 1.8));
+	}
 	.pin {
 		cursor: pointer;
 	}
@@ -221,13 +449,13 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-CN', { year: 'numeric', mo
 	.dot {
 		fill: var(--orange);
 		stroke: #140b06;
-		stroke-width: 2.5;
+		stroke-width: 1.8px;
 		transition: fill 0.2s var(--ease);
 	}
 	.ring {
 		fill: none;
 		stroke: var(--orange);
-		stroke-width: 2;
+		stroke-width: 1.4px;
 		transform-box: fill-box;
 		transform-origin: center;
 		animation: ping 2.8s var(--ease-out) infinite;
@@ -244,29 +472,37 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-CN', { year: 'numeric', mo
 	}
 	.tag text {
 		paint-order: stroke;
-		stroke: #0c1a1b;
-		stroke-width: 7px;
+		stroke: #0a1516;
+		stroke-width: 3.4px;
 		stroke-linejoin: round;
 	}
 	.no {
 		font-family: var(--font-display);
-		font-size: 19px;
+		font-size: 11px;
 		font-weight: 700;
 		letter-spacing: 0.12em;
 		fill: var(--orange);
 	}
 	.name {
 		font-family: var(--font-head);
-		font-size: 27px;
+		font-size: 16.5px;
 		font-weight: 700;
 		letter-spacing: 0.06em;
 		fill: var(--ink);
-		transition: fill 0.2s var(--ease);
+		transition:
+			fill 0.2s var(--ease),
+			opacity 0.3s var(--ease);
+	}
+	/* 挤在一起时只留编号；悬停或聚焦时仍然显示名字 */
+	.pin:global(.crowded) .name {
+		opacity: 0;
+	}
+	.pin:global(.crowded):hover .name,
+	.pin:global(.crowded):focus-visible .name {
+		opacity: 1;
 	}
 	.pin:hover .dot,
-	.pin:focus-visible .dot {
-		fill: var(--orange-hi);
-	}
+	.pin:focus-visible .dot,
 	.pin:hover .name,
 	.pin:focus-visible .name {
 		fill: var(--orange-hi);
@@ -276,7 +512,54 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-CN', { year: 'numeric', mo
 	}
 	.pin:focus-visible .hit {
 		stroke: var(--orange-hi);
-		stroke-width: 2;
+		stroke-width: 1.5px;
+	}
+
+	/* 操作提示与按钮 */
+	.hint {
+		position: absolute;
+		left: 12px;
+		top: 10px;
+		margin: 0;
+		padding: 3px 10px;
+		background: rgba(14, 20, 19, 0.72);
+		font-size: 0.66rem;
+		letter-spacing: 0.14em;
+		pointer-events: none;
+		transition:
+			color 0.3s var(--ease),
+			background 0.3s var(--ease);
+	}
+	.hint:global(.on) {
+		color: #140b06;
+		background: var(--orange-hi);
+	}
+	.ctrl {
+		position: absolute;
+		right: 12px;
+		bottom: 12px;
+		display: flex;
+		gap: 6px;
+	}
+	.ctrl button {
+		min-width: 34px;
+		height: 34px;
+		padding: 0 10px;
+		border: 1px solid var(--line-2);
+		background: rgba(14, 20, 19, 0.82);
+		color: var(--orange);
+		font-family: var(--font-display);
+		font-size: 0.82rem;
+		font-weight: 500;
+		letter-spacing: 0.14em;
+		cursor: pointer;
+		transition:
+			color 0.2s var(--ease),
+			border-color 0.2s var(--ease);
+	}
+	.ctrl button:hover {
+		color: var(--orange-hi);
+		border-color: var(--orange);
 	}
 
 	.list {
@@ -293,5 +576,14 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-CN', { year: 'numeric', mo
 	}
 	.empty {
 		color: var(--ink-2);
+	}
+
+	@media (max-width: 720px) {
+		.stage {
+			aspect-ratio: 4 / 5;
+		}
+		.hint {
+			font-size: 0.6rem;
+		}
 	}
 </style>
