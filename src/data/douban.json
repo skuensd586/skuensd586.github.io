@@ -1,33 +1,43 @@
 {
-	"updated": "2026-11-11T03:01:29.076Z",
+	"updated": "2026-11-12T03:12:32.835Z",
 	"items": [
 		{
+			"type": "movie",
+			"status": "done",
+			"title": "分手的决心",
+			"url": "https://movie.douban.com/subject/35073886/",
+			"rating": 5,
+			"comment": "一开始看觉得节奏完全不对，分镜和转场非常神秘，配乐一会合适一会不合适的，但是最后我真的感受到这种在正常和神经质的边缘游离的氛围了，一个纯粹的爱情故事，还想多看几部朴赞郁×汤唯。",
+			"date": "2026-11-11T13:18:51.000Z",
+			"cover": "covers/0121cb15a05d.jpg"
+		},
+		{
+			"cover": "covers/3514593d1d38.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "办公室   第三季",
 			"url": "https://movie.douban.com/subject/2163588/",
 			"rating": 3,
 			"comment": "感情线不好看。",
-			"date": "2026-11-10T14:19:37.000Z",
-			"cover": "covers/3514593d1d38.jpg"
+			"date": "2026-11-10T14:19:37.000Z"
 		},
 		{
+			"cover": "covers/fc7838193d81.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "完美的日子",
 			"url": "https://movie.douban.com/subject/35902857/",
 			"rating": 5,
 			"comment": "无法挪开视线，文德斯一定很不喜欢说话吧。",
-			"date": "2026-11-09T07:14:46.000Z",
-			"cover": "covers/fc7838193d81.jpg"
+			"date": "2026-11-09T07:14:46.000Z"
 		},
 		{
+			"cover": "covers/0f06507f93b4.jpg",
 			"type": "movie",
 			"status": "wish",
 			"title": "战争之王",
 			"url": "https://movie.douban.com/subject/1419936/",
-			"date": "2026-11-05T07:07:52.000Z",
-			"cover": "covers/0f06507f93b4.jpg"
+			"date": "2026-11-05T07:07:52.000Z"
 		},
 		{
 			"type": "music",
@@ -39,57 +49,57 @@
 			"date": "2026-11-05T05:44:22.000Z"
 		},
 		{
+			"cover": "covers/8460b154c71b.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "办公室   第二季",
 			"url": "https://movie.douban.com/subject/2159568/",
 			"rating": 4,
 			"comment": "其实我更喜欢第一季！",
-			"date": "2026-11-03T05:35:24.000Z",
-			"cover": "covers/8460b154c71b.jpg"
+			"date": "2026-11-03T05:35:24.000Z"
 		},
 		{
+			"cover": "covers/e0c85bbe34f0.jpg",
 			"type": "movie",
 			"status": "wish",
 			"title": "安娜玛德莲娜",
 			"url": "https://movie.douban.com/subject/1301974/",
-			"date": "2026-11-01T07:38:05.000Z",
-			"cover": "covers/e0c85bbe34f0.jpg"
+			"date": "2026-11-01T07:38:05.000Z"
 		},
 		{
+			"cover": "covers/5c963009cd82.jpg",
 			"type": "movie",
 			"status": "wish",
 			"title": "彩排 第一季",
 			"url": "https://movie.douban.com/subject/35935299/",
-			"date": "2026-11-01T02:56:02.000Z",
-			"cover": "covers/5c963009cd82.jpg"
+			"date": "2026-11-01T02:56:02.000Z"
 		},
 		{
+			"cover": "covers/df12a239a811.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "天才之击",
 			"url": "https://movie.douban.com/subject/30268753/",
-			"date": "2026-10-31T16:31:29.000Z",
-			"cover": "covers/df12a239a811.jpg"
+			"date": "2026-10-31T16:31:29.000Z"
 		},
 		{
+			"cover": "covers/c96d52f3e25c.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "分手前要做的十件事",
 			"url": "https://movie.douban.com/subject/33435959/",
 			"rating": 2,
-			"date": "2026-10-29T10:38:10.000Z",
-			"cover": "covers/c96d52f3e25c.jpg"
+			"date": "2026-10-29T10:38:10.000Z"
 		},
 		{
+			"cover": "covers/adc70fdbfe37.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "办公室 第一季",
 			"url": "https://movie.douban.com/subject/10529476/",
 			"rating": 4,
 			"comment": "所以摄影师到底是谁啊！",
-			"date": "2026-10-29T01:44:43.000Z",
-			"cover": "covers/adc70fdbfe37.jpg"
+			"date": "2026-10-29T01:44:43.000Z"
 		}
 	]
 }
