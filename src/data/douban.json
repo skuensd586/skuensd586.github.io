@@ -1,23 +1,33 @@
 {
-	"updated": "2026-11-13T02:44:32.548Z",
+	"updated": "2026-11-14T02:34:30.972Z",
 	"items": [
 		{
+			"type": "movie",
+			"status": "done",
+			"title": "晚秋",
+			"url": "https://movie.douban.com/subject/4136036/",
+			"rating": 4,
+			"comment": "没有一个人看完这部电影不会爱上汤唯，但是不喜欢这个刻意的结尾，这段关系的核心恰恰在于距离，在我看来，面对面微笑道别的时候就已经是最完美的时刻了。",
+			"date": "2026-11-13T16:40:15.000Z",
+			"cover": "covers/de898102b05c.jpg"
+		},
+		{
+			"cover": "covers/43143b875b3b.jpg",
 			"type": "movie",
 			"status": "wish",
 			"title": "穿越大吉岭",
 			"url": "https://movie.douban.com/subject/1968438/",
-			"date": "2026-11-13T02:40:00.000Z",
-			"cover": "covers/43143b875b3b.jpg"
+			"date": "2026-11-13T02:40:00.000Z"
 		},
 		{
+			"coverTried": "2026-11-13T02:44:32.547Z",
 			"type": "book",
 			"status": "done",
 			"title": "政治学通识",
 			"url": "https://book.douban.com/subject/26658395/",
 			"rating": 5,
 			"comment": "复健阅读能力中，一本非常好的通识，尤其意识形态的一讲有醍醐灌顶之感，或者我本身还是对这部分更有兴趣一些，后半部分有点犯困。计划接下来读一读哈耶克和托克维尔。",
-			"date": "2026-11-12T11:25:42.000Z",
-			"coverTried": "2026-11-13T02:44:32.547Z"
+			"date": "2026-11-12T11:25:42.000Z"
 		},
 		{
 			"cover": "covers/0121cb15a05d.jpg",
