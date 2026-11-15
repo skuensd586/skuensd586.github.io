@@ -1,5 +1,5 @@
 {
-	"updated": "2026-11-15T15:25:45.472Z",
+	"updated": "2026-11-15T15:31:02.546Z",
 	"items": [
 		{
 			"cover": "covers/de898102b05c.jpg",
@@ -20,14 +20,14 @@
 			"date": "2026-11-13T02:40:00.000Z"
 		},
 		{
-			"coverTried": "2026-11-15T15:25:36.426Z",
 			"type": "book",
 			"status": "done",
 			"title": "政治学通识",
 			"url": "https://book.douban.com/subject/26658395/",
 			"rating": 5,
 			"comment": "复健阅读能力中，一本非常好的通识，尤其意识形态的一讲有醍醐灌顶之感，或者我本身还是对这部分更有兴趣一些，后半部分有点犯困。计划接下来读一读哈耶克和托克维尔。",
-			"date": "2026-11-12T11:25:42.000Z"
+			"date": "2026-11-12T11:25:42.000Z",
+			"cover": "covers/manual/26658395.jpg"
 		},
 		{
 			"cover": "covers/0121cb15a05d.jpg",
