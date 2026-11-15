@@ -1,15 +1,15 @@
 {
-	"updated": "2026-11-14T02:34:30.972Z",
+	"updated": "2026-11-15T02:01:50.364Z",
 	"items": [
 		{
+			"cover": "covers/de898102b05c.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "晚秋",
 			"url": "https://movie.douban.com/subject/4136036/",
 			"rating": 4,
 			"comment": "没有一个人看完这部电影不会爱上汤唯，但是不喜欢这个刻意的结尾，这段关系的核心恰恰在于距离，在我看来，面对面微笑道别的时候就已经是最完美的时刻了。",
-			"date": "2026-11-13T16:40:15.000Z",
-			"cover": "covers/de898102b05c.jpg"
+			"date": "2026-11-13T16:40:15.000Z"
 		},
 		{
 			"cover": "covers/43143b875b3b.jpg",
