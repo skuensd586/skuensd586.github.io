@@ -141,7 +141,7 @@ const options = [
 					<ul class="shelf">
 						{media.map((m, i) => (
 							<li class="reveal" style={`--d:${i * 0.06}s`}>
-								<a href={url('media/')} title={m.title}>
+								<a class={m.type} href={url('media/')} title={m.title}>
 									<img src={url(m.cover!)} alt={m.title} loading="lazy" decoding="async" />
 								</a>
 							</li>
@@ -469,6 +469,14 @@ const options = [
 	.shelf a:hover {
 		transform: translateY(-6px) rotate(-1.2deg);
 		border-color: var(--orange);
+	}
+	.shelf a.music {
+		display: grid;
+		align-items: center;
+	}
+	.shelf a.music img {
+		height: auto;
+		aspect-ratio: 1;
 	}
 	.shelf img {
 		display: block;

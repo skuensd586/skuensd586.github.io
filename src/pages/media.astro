@@ -191,8 +191,8 @@ const activeDays = [...perDay.keys()].filter((k) => k >= weeks[0].days[0].key).l
 		<p class="none" hidden>这个筛选下没有内容。</p>
 
 		<p class="credit">
-			影视封面与数据来自 TMDB，图书封面来自 Open Library。This product uses the TMDB API but is not endorsed or
-			certified by TMDB.
+			影视封面与数据来自 TMDB，图书封面来自 Open Library 与 Google Books，专辑封面来自 MusicBrainz 与 Cover Art
+			Archive。This product uses the TMDB API but is not endorsed or certified by TMDB.
 		</p>
 	</main>
 </Base>
@@ -523,6 +523,18 @@ const activeDays = [...perDay.keys()].filter((k) => k >= weeks[0].days[0].key).l
 	}
 	.item a:hover .cover img {
 		filter: none;
+	}
+	/* 专辑封面是正方形：完整显示在卡片中间，不裁切 */
+	.cover.music.has-img img {
+		inset: auto 0;
+		top: 50%;
+		height: auto;
+		aspect-ratio: 1;
+		transform: translateY(-50%);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+	}
+	.cover.music.has-img {
+		background: linear-gradient(160deg, color-mix(in srgb, var(--psy) 30%, #0e1413), color-mix(in srgb, var(--psy) 8%, #0e1413));
 	}
 	.cover.has-img .top {
 		position: absolute;

@@ -1,5 +1,5 @@
 {
-	"updated": "2026-11-15T02:01:50.364Z",
+	"updated": "2026-11-15T15:25:45.472Z",
 	"items": [
 		{
 			"cover": "covers/de898102b05c.jpg",
@@ -20,7 +20,7 @@
 			"date": "2026-11-13T02:40:00.000Z"
 		},
 		{
-			"coverTried": "2026-11-13T02:44:32.547Z",
+			"coverTried": "2026-11-15T15:25:36.426Z",
 			"type": "book",
 			"status": "done",
 			"title": "政治学通识",
@@ -74,7 +74,8 @@
 			"url": "https://music.douban.com/subject/1394768/",
 			"rating": 5,
 			"comment": "听到tender和coffee＆tv我就会原谅一切，然后full of distance left run",
-			"date": "2026-11-05T05:44:22.000Z"
+			"date": "2026-11-05T05:44:22.000Z",
+			"cover": "covers/108a97d7db4c.jpg"
 		},
 		{
 			"cover": "covers/8460b154c71b.jpg",

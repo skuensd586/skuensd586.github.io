@@ -37,13 +37,15 @@ jobs:
           DOUBAN_ID: ${{ vars.DOUBAN_ID || '223894725' }}
         run: node scripts/sync-douban.mjs
 
-      # 封面：电影用 TMDB（需在仓库 Settings → Secrets → Actions 添加 TMDB_API_KEY），书用 Open Library。
-      # 未设置密钥时，电影封面会被跳过，不影响其他步骤。
+      # 封面：电影用 TMDB（Secret：TMDB_API_KEY）；书用 Open Library，后备 Google Books
+      #（Secret：GOOGLE_BOOKS_API_KEY，可选）；音乐用 MusicBrainz，无需密钥。
+      # 未设置的密钥对应的来源会被跳过，不影响其他步骤。
       - name: 获取封面
         if: github.event_name != 'push'
         continue-on-error: true
         env:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          GOOGLE_BOOKS_API_KEY: ${{ secrets.GOOGLE_BOOKS_API_KEY }}
         run: node scripts/fetch-covers.mjs
 
       - name: 提交豆瓣数据变更
