@@ -1,25 +1,33 @@
 {
-	"updated": "2026-11-21T03:19:57.819Z",
+	"updated": "2026-11-22T02:28:02.590Z",
 	"items": [
 		{
+			"type": "music",
+			"status": "done",
+			"title": "Rubber Soul",
+			"url": "https://music.douban.com/subject/1401362/",
+			"date": "2026-11-21T08:44:07.000Z",
+			"coverTried": "2026-11-22T02:28:02.588Z"
+		},
+		{
+			"cover": "covers/3d4fc17a7fd3.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "阳光小美女",
 			"url": "https://movie.douban.com/subject/1777612/",
 			"rating": 4,
 			"comment": "真不应该在看这部之前看office，前半段一直在出戏。。",
-			"date": "2026-11-20T16:22:58.000Z",
-			"cover": "covers/3d4fc17a7fd3.jpg"
+			"date": "2026-11-20T16:22:58.000Z"
 		},
 		{
+			"cover": "covers/1ad25afbd15e.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "正常人",
 			"url": "https://movie.douban.com/subject/33477335/",
 			"rating": 4,
 			"comment": "唉",
-			"date": "2026-11-19T15:26:46.000Z",
-			"cover": "covers/1ad25afbd15e.jpg"
+			"date": "2026-11-19T15:26:46.000Z"
 		},
 		{
 			"coverTried": "2026-11-19T03:43:58.829Z",
