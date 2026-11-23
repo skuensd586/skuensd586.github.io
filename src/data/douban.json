@@ -1,13 +1,32 @@
 {
-	"updated": "2026-11-22T02:28:02.590Z",
+	"updated": "2026-11-23T02:56:58.514Z",
 	"items": [
 		{
+			"type": "movie",
+			"status": "done",
+			"title": "秋天的故事",
+			"url": "https://movie.douban.com/subject/1294140/",
+			"rating": 4,
+			"comment": "把人之间流动又暧昧不明的关系融进了对白和画面之中，也许如果人人都如年轻的rosine一般更坦诚、开放一些，这部电影就不会这么长了:p",
+			"date": "2026-11-22T09:34:21.000Z",
+			"cover": "covers/a8a55e0c8320.jpg"
+		},
+		{
+			"type": "music",
+			"status": "done",
+			"title": "Imagine",
+			"url": "https://music.douban.com/subject/1412675/",
+			"comment": "How?",
+			"date": "2026-11-22T06:53:41.000Z",
+			"coverTried": "2026-11-23T02:56:58.513Z"
+		},
+		{
+			"coverTried": "2026-11-22T02:28:02.588Z",
 			"type": "music",
 			"status": "done",
 			"title": "Rubber Soul",
 			"url": "https://music.douban.com/subject/1401362/",
-			"date": "2026-11-21T08:44:07.000Z",
-			"coverTried": "2026-11-22T02:28:02.588Z"
+			"date": "2026-11-21T08:44:07.000Z"
 		},
 		{
 			"cover": "covers/3d4fc17a7fd3.jpg",
