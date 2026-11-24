@@ -1,24 +1,58 @@
 {
-	"updated": "2026-11-23T02:56:58.514Z",
+	"updated": "2026-11-24T06:13:30.703Z",
 	"items": [
 		{
+			"type": "movie",
+			"status": "wish",
+			"title": "JO的一天：菲德拉篇",
+			"url": "https://movie.douban.com/subject/36308267/",
+			"date": "2026-11-24T05:08:28.000Z",
+			"coverTried": "2026-11-24T06:13:29.424Z"
+		},
+		{
+			"type": "movie",
+			"status": "wish",
+			"title": "纯真年代",
+			"url": "https://movie.douban.com/subject/1301465/",
+			"date": "2026-11-24T02:53:06.000Z",
+			"cover": "covers/fe8c97b0be6f.jpg"
+		},
+		{
+			"type": "movie",
+			"status": "wish",
+			"title": "社交清算",
+			"url": "https://movie.douban.com/subject/36871702/",
+			"date": "2026-11-24T01:54:36.000Z",
+			"cover": "covers/0612ea24d8be.jpg"
+		},
+		{
+			"type": "movie",
+			"status": "done",
+			"title": "人生七年10",
+			"url": "https://movie.douban.com/subject/38456015/",
+			"rating": 5,
+			"comment": "有点恍惚，我怎么已经快21了……",
+			"date": "2026-11-23T10:11:45.000Z",
+			"cover": "covers/83da5e63ed4d.jpg"
+		},
+		{
+			"cover": "covers/a8a55e0c8320.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "秋天的故事",
 			"url": "https://movie.douban.com/subject/1294140/",
 			"rating": 4,
 			"comment": "把人之间流动又暧昧不明的关系融进了对白和画面之中，也许如果人人都如年轻的rosine一般更坦诚、开放一些，这部电影就不会这么长了:p",
-			"date": "2026-11-22T09:34:21.000Z",
-			"cover": "covers/a8a55e0c8320.jpg"
+			"date": "2026-11-22T09:34:21.000Z"
 		},
 		{
+			"coverTried": "2026-11-23T02:56:58.513Z",
 			"type": "music",
 			"status": "done",
 			"title": "Imagine",
 			"url": "https://music.douban.com/subject/1412675/",
 			"comment": "How?",
-			"date": "2026-11-22T06:53:41.000Z",
-			"coverTried": "2026-11-23T02:56:58.513Z"
+			"date": "2026-11-22T06:53:41.000Z"
 		},
 		{
 			"coverTried": "2026-11-22T02:28:02.588Z",
