@@ -1,39 +1,55 @@
 {
-	"updated": "2026-11-24T06:13:30.703Z",
+	"updated": "2026-11-25T04:58:14.984Z",
 	"items": [
 		{
 			"type": "movie",
 			"status": "wish",
-			"title": "JO的一天：菲德拉篇",
-			"url": "https://movie.douban.com/subject/36308267/",
-			"date": "2026-11-24T05:08:28.000Z",
-			"coverTried": "2026-11-24T06:13:29.424Z"
+			"title": "地雷区",
+			"url": "https://movie.douban.com/subject/26591654/",
+			"date": "2026-11-25T02:55:13.000Z",
+			"cover": "covers/f1902128b287.jpg"
 		},
 		{
+			"type": "movie",
+			"status": "wish",
+			"title": "故土",
+			"url": "https://movie.douban.com/subject/37487816/",
+			"date": "2026-11-25T02:54:30.000Z",
+			"cover": "covers/cc242a9a4529.jpg"
+		},
+		{
+			"coverTried": "2026-11-24T06:13:29.424Z",
+			"type": "movie",
+			"status": "wish",
+			"title": "JO的一天：菲德拉篇",
+			"url": "https://movie.douban.com/subject/36308267/",
+			"date": "2026-11-24T05:08:28.000Z"
+		},
+		{
+			"cover": "covers/fe8c97b0be6f.jpg",
 			"type": "movie",
 			"status": "wish",
 			"title": "纯真年代",
 			"url": "https://movie.douban.com/subject/1301465/",
-			"date": "2026-11-24T02:53:06.000Z",
-			"cover": "covers/fe8c97b0be6f.jpg"
+			"date": "2026-11-24T02:53:06.000Z"
 		},
 		{
+			"cover": "covers/0612ea24d8be.jpg",
 			"type": "movie",
 			"status": "wish",
 			"title": "社交清算",
 			"url": "https://movie.douban.com/subject/36871702/",
-			"date": "2026-11-24T01:54:36.000Z",
-			"cover": "covers/0612ea24d8be.jpg"
+			"date": "2026-11-24T01:54:36.000Z"
 		},
 		{
+			"cover": "covers/83da5e63ed4d.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "人生七年10",
 			"url": "https://movie.douban.com/subject/38456015/",
 			"rating": 5,
 			"comment": "有点恍惚，我怎么已经快21了……",
-			"date": "2026-11-23T10:11:45.000Z",
-			"cover": "covers/83da5e63ed4d.jpg"
+			"date": "2026-11-23T10:11:45.000Z"
 		},
 		{
 			"cover": "covers/a8a55e0c8320.jpg",
