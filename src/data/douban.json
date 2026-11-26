@@ -1,21 +1,50 @@
 {
-	"updated": "2026-11-25T04:58:14.984Z",
+	"updated": "2026-11-26T04:15:02.256Z",
 	"items": [
 		{
+			"type": "music",
+			"status": "done",
+			"title": "Friday I'm in Love",
+			"url": "https://music.douban.com/subject/1851655/",
+			"rating": 4,
+			"date": "2026-11-26T01:52:37.000Z",
+			"coverTried": "2026-11-26T04:15:01.322Z"
+		},
+		{
+			"type": "movie",
+			"status": "done",
+			"title": "摄影机不要停！",
+			"url": "https://movie.douban.com/subject/30234315/",
+			"rating": 5,
+			"comment": "开心！",
+			"date": "2026-11-25T10:13:40.000Z",
+			"cover": "covers/83f2e4713fec.jpg"
+		},
+		{
+			"type": "movie",
+			"status": "done",
+			"title": "一切如你所见",
+			"url": "https://movie.douban.com/subject/38643086/",
+			"rating": 4,
+			"comment": "让Amanda来扮演Liz的设计太合适了，她一开始就精准地表现出了神态、话语上的违和感，但是和旁白之间的切换又似乎在传达，这只是一场表演。Nathan提到多次自己和Liz相处的感觉，“不知为何却感觉很真诚”，这种复杂的感受本身想必是语言和影像所不能传递的，但他至少充分拍出了这种复杂性的存在。",
+			"date": "2026-11-25T06:13:51.000Z",
+			"cover": "covers/38bfce57cdaf.jpg"
+		},
+		{
+			"cover": "covers/f1902128b287.jpg",
 			"type": "movie",
 			"status": "wish",
 			"title": "地雷区",
 			"url": "https://movie.douban.com/subject/26591654/",
-			"date": "2026-11-25T02:55:13.000Z",
-			"cover": "covers/f1902128b287.jpg"
+			"date": "2026-11-25T02:55:13.000Z"
 		},
 		{
+			"cover": "covers/cc242a9a4529.jpg",
 			"type": "movie",
 			"status": "wish",
 			"title": "故土",
 			"url": "https://movie.douban.com/subject/37487816/",
-			"date": "2026-11-25T02:54:30.000Z",
-			"cover": "covers/cc242a9a4529.jpg"
+			"date": "2026-11-25T02:54:30.000Z"
 		},
 		{
 			"coverTried": "2026-11-24T06:13:29.424Z",
