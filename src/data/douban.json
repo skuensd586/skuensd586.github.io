@@ -1,24 +1,34 @@
 {
-	"updated": "2026-11-27T04:23:57.411Z",
+	"updated": "2026-11-28T04:03:44.505Z",
 	"items": [
 		{
+			"type": "book",
+			"status": "done",
+			"title": "死于威尼斯",
+			"url": "https://book.douban.com/subject/38494945/",
+			"rating": 3,
+			"comment": "更喜欢《特里斯坦》，在知道《死于威尼斯》是作者本人的经历改编之后更无法直视了==",
+			"date": "2026-11-27T12:13:04.000Z",
+			"coverTried": "2026-11-28T04:03:44.504Z"
+		},
+		{
+			"coverTried": "2026-11-27T04:23:56.726Z",
 			"type": "music",
 			"status": "done",
 			"title": "梦想家 The Dreamer",
 			"url": "https://music.douban.com/subject/36966013/",
 			"rating": 5,
 			"comment": "天塌下来 胆小鬼们 都不怕",
-			"date": "2026-11-26T17:48:34.000Z",
-			"coverTried": "2026-11-27T04:23:56.726Z"
+			"date": "2026-11-26T17:48:34.000Z"
 		},
 		{
+			"cover": "covers/9921aadc5c92.jpg",
 			"type": "movie",
 			"status": "done",
 			"title": "落难见真情",
 			"url": "https://movie.douban.com/subject/1301775/",
 			"rating": 3,
-			"date": "2026-11-26T13:09:04.000Z",
-			"cover": "covers/9921aadc5c92.jpg"
+			"date": "2026-11-26T13:09:04.000Z"
 		},
 		{
 			"coverTried": "2026-11-26T04:15:01.322Z",
